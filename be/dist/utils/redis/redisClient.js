@@ -12,32 +12,42 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sub = exports.redis = void 0;
+exports.pub = exports.sub = exports.redis = void 0;
 exports.safeEvalSha = safeEvalSha;
 const ioredis_1 = __importDefault(require("ioredis"));
-exports.redis = new ioredis_1.default({
-    username: process.env.REDIS_USERNAME,
-    password: process.env.REDIS_PASSWORD,
-    host: process.env.REDIS_HOST,
-    port: Number(process.env.REDIS_PORT),
-    tls: {},
-});
-exports.sub = new ioredis_1.default({
-    username: process.env.REDIS_USERNAME,
-    password: process.env.REDIS_PASSWORD,
-    host: process.env.REDIS_HOST,
-    port: Number(process.env.REDIS_PORT),
-    tls: {},
-});
-// small wrapper for safe EVALSHA execution
+function makeClient(label) {
+    const url = process.env.REDIS_URL;
+    if (url) {
+        const client = new ioredis_1.default(url, {
+            // good production defaults
+            enableReadyCheck: true,
+            maxRetriesPerRequest: 3,
+            tls: url.startsWith("rediss://")
+                ? { servername: new URL(url).hostname }
+                : undefined,
+        });
+        client.on("error", (e) => console.error(`[redis:${label}]`, e.message));
+        return client;
+    }
+    // Otherwise build from discrete env vars
+    const host = process.env.REDIS_HOST;
+    const port = Number(process.env.REDIS_PORT);
+    const username = process.env.REDIS_USERNAME;
+    const password = process.env.REDIS_PASSWORD;
+    const useTLS = process.env.REDIS_TLS === "true";
+    const opts = Object.assign({ host,
+        port,
+        username,
+        password, enableReadyCheck: true, maxRetriesPerRequest: 3 }, (useTLS ? { tls: { servername: host } } : {}));
+    const client = new ioredis_1.default(opts);
+    client.on("error", (e) => console.error(`[redis:${label}]`, e.message));
+    return client;
+}
+exports.redis = makeClient("main");
+exports.sub = makeClient("sub");
+exports.pub = makeClient("pub");
 function safeEvalSha(sha, ...args) {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            return yield exports.redis.evalsha(sha, 0, ...args);
-        }
-        catch (err) {
-            console.error("[safeEvalSha] Redis error:", err);
-            throw err;
-        }
+        return exports.redis.evalsha(sha, 0, ...args);
     });
 }

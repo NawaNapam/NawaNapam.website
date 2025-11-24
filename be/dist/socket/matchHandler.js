@@ -12,67 +12,75 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleMatchRequest = handleMatchRequest;
 const redisClient_1 = require("../utils/redis/redisClient");
 const scripts_1 = require("../utils/redis/scripts");
+const chatHandlers_1 = require("./chatHandlers");
 const STALE_MS = Number(process.env.STALE_MS || 30000);
-function handleMatchRequest(socket) {
+function handleMatchRequest(io, socket) {
     return __awaiter(this, void 0, void 0, function* () {
         const userId = socket.data.userId;
         if (!userId)
             return socket.emit("match:error", "not-authenticated");
-        const roomId = `r:${userId}:${Date.now()}`;
         const now = Date.now();
         try {
-            // Optional: if user is already matched/in-room, ignore
             const u = yield redisClient_1.redis.hgetall(`user:${userId}`);
             if (u && (u.status === "matched" || (u.currentRoom && u.currentRoom !== ""))) {
+                console.warn("[match] user already in room", { userId, status: u.status, currentRoom: u.currentRoom });
                 return socket.emit("match:error", "already-in-room");
             }
-            // ensure requester is in global pools (defensive)
+            // ✅ Mark user as available in their hash too (and refresh lastSeen, clear any stale currentRoom)
+            yield redisClient_1.redis.hset(`user:${userId}`, "status", "available", "lastSeen", String(now), "currentRoom", "");
+            // Ensure requester is visible in pools
             yield redisClient_1.redis.sadd("available", userId);
             yield redisClient_1.redis.zadd("available_by_time", now, userId);
-            // ARGV: requesterId, nowTs(ms), staleMs, roomId
-            const raw = yield redisClient_1.redis.evalsha(scripts_1.scripts.matchSha, 0, userId, String(now), String(STALE_MS), roomId);
-            // ---- normalize response ----
+            // Lua decides the peer and generates the canonical roomId (requester-now-candidate)
+            const raw = yield redisClient_1.redis.evalsha(scripts_1.scripts.matchSha, 0, userId, String(now), String(STALE_MS));
             let parsed = null;
-            if (typeof raw === "string") {
-                // Try JSON first
-                if (raw.startsWith("{")) {
-                    try {
-                        parsed = JSON.parse(raw);
-                    }
-                    catch ( /* fallthrough */_a) { /* fallthrough */ }
+            if (typeof raw === "string" && raw.startsWith("{")) {
+                try {
+                    parsed = JSON.parse(raw);
                 }
+                catch (_a) { }
             }
             else if (raw && typeof raw === "object") {
-                parsed = raw; // some redis clients return tables/objects
+                parsed = raw;
             }
             if (parsed) {
                 if (parsed.ok) {
                     const peerId = parsed.candidate;
-                    const rid = parsed.roomId || roomId;
-                    return socket.emit("match:found", { peerId, roomId: rid });
+                    const rid = parsed.roomId; // authoritative
+                    // requester is matched now
+                    yield redisClient_1.redis.hset(`user:${userId}`, "status", "matched", "currentRoom", rid);
+                    socket.emit("match:found", { peerId, roomId: rid });
+                    // server-join requester immediately
+                    yield (0, chatHandlers_1.handleChatRoomJoin)(io, socket, { roomId: rid });
+                    console.log("[match] requester joined room", { userId, roomId: rid, peerId });
+                    return;
                 }
-                // Non-fatal: keep searching
                 const errCode = String(parsed.err || "").toUpperCase();
                 if (errCode === "NO_PEER" || errCode === "STALE_PEER" || errCode === "NOT_AVAILABLE") {
-                    return socket.emit("match:queued");
+                    // keep them available while queued
+                    yield redisClient_1.redis.hset(`user:${userId}`, "status", "available", "lastSeen", String(Date.now()));
+                    socket.emit("match:queued");
+                    console.log("[match] queued", { userId });
+                    return;
                 }
-                // Anything else -> hard error
+                console.warn("[match] error from script", { userId, errCode, raw: parsed });
                 return socket.emit("match:error", errCode || "match_failed");
             }
-            // Legacy fallback: treat raw string as peerId ONLY if it looks like an ID (not JSON)
-            if (typeof raw === "string" && raw && raw[0] !== "{" && /^[A-Za-z0-9:_-]{3,128}$/.test(raw)) {
-                return socket.emit("match:found", { peerId: raw, roomId });
-            }
             // Default graceful path: queue
-            return socket.emit("match:queued");
+            yield redisClient_1.redis.hset(`user:${userId}`, "status", "available", "lastSeen", String(Date.now()));
+            socket.emit("match:queued");
+            console.log("[match] queued (default path)", { userId });
+            return;
         }
         catch (e) {
             const msg = String((e === null || e === void 0 ? void 0 : e.message) || e);
-            // Common pattern: treat NO_PEER as queued
             if (msg.includes("NO_PEER")) {
-                return socket.emit("match:queued");
+                yield redisClient_1.redis.hset(`user:${userId}`, "status", "available", "lastSeen", String(Date.now()));
+                socket.emit("match:queued");
+                console.log("[match] queued via NO_PEER", { userId });
+                return;
             }
-            console.error("[match] error", e);
+            console.error("[match] error", e, { userId });
             return socket.emit("match:error", msg);
         }
     });

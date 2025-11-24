@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Mic,
@@ -16,186 +17,192 @@ import {
   Users,
   User,
 } from "lucide-react";
-import { useSignaling, onAuthOk } from "@/lib/SocketProvider";
-import { useGetUser } from "@/hooks/use-getuser";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
+
+import { useGetUser } from "@/hooks/use-getuser";
+import { useRoomChat } from "@/hooks/useRoomChat";
+import { useSignaling, onAuthOk } from "@/hooks/SocketProvider";
+import { useWebRTC } from "@/hooks/useWebRTC";
 
 export default function VideoChatPage() {
   // UI state
   const [currentTime, setCurrentTime] = useState("");
-  const [messages, setMessages] = useState<
-    { sender: "self" | "stranger"; text: string }[]
-  >([]);
   const [inputMessage, setInputMessage] = useState("");
-  const [keywords, setKeywords] = useState<string[]>([
-    "Music",
-    "Travel",
-    "Food",
-    "Cricket",
-  ]);
+  const [keywords, setKeywords] = useState<string[]>(["Music", "Travel", "Food", "Cricket"]);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
 
-  // media refs
+  // refs
   const selfVideoRef = useRef<HTMLVideoElement | null>(null);
   const strangerVideoRef = useRef<HTMLVideoElement | null>(null);
-  const localStreamRef = useRef<MediaStream | null>(null);
   const messageEndRef = useRef<HTMLDivElement | null>(null);
+  const hasStartedRef = useRef(false);
 
-  // auth / user
+  // auth / router
   const user = useGetUser();
   const userId = user?.id ?? null;
   const username = user?.username ?? undefined;
-
-  const { data: session, status: sessionStatus } = useSession();
+  const { status: sessionStatus, data: session } = useSession();
   const router = useRouter();
 
-  // Guard: require authenticated userId
-  // useEffect(() => {
-  //   if (sessionStatus === "loading") return;
-  //   if (!session?.user?.email || !userId) {
-  //     toast.error("Sign in to join video chat.");
-  //     router.replace("/api/auth/signin");
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [sessionStatus, session, userId]);
+  // signaling
+  const { status, peer, roomId, start, next, end, socket } = useSignaling(
+    useMemo(() => ({ userId: userId ?? "", username }), [userId, username])
+  );
 
-  // Signaling hook (no region)
-  const { status, peer, roomId, start, next, end, teardown } = useSignaling({
-    userId: userId ?? "",
-    username,
+  // text chat
+  const { messages: chatMessages, send: sendChatMessage, reset: clearChat } = useRoomChat({
+    socket,
+    roomId: roomId ?? null,
+    selfUserId: userId ?? "",
+    selfUsername: username,
   });
 
-  // First auto-start: only after `auth:ok`
-  useEffect(() => {
-    if (!userId) return;
-    const off = onAuthOk(() => {
-      if (status === "idle" || status === "ended") start();
-    });
-    return () => off?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  // --- WebRTC hook ---
+  const {
+    attachLocal,
+    attachRemote,
+    toggleAudio,
+    toggleVideo,
+    endCall,
+    connected,
+  } = useWebRTC({
+    socket,
+    roomId: roomId ?? null,
+    selfUserId: userId ?? "",
+    offererHint: null,
+  });
 
-  // Live IST Time
-  useEffect(() => {
-    const update = () => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleTimeString("en-IN", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        }) + " IST"
-      );
-    };
-    update();
-    const int = setInterval(update, 1000);
-    return () => clearInterval(int);
-  }, []);
+  // bridge refs -> hook attachers
+    const bindSelfRef = useCallback(
+    (el: HTMLVideoElement | null) => {
+      selfVideoRef.current = el;
+      if (el && attachLocal) {
+        attachLocal(el); // This will be called again when stream is ready
+      }
+    },
+    [attachLocal]
+  );
+  const bindRemoteRef = useCallback(
+    (el: HTMLVideoElement | null) => {
+      strangerVideoRef.current = el;
+      attachRemote(el);
+    },
+    [attachRemote]
+  );
 
-  // Local camera/mic preview
+  // hard-redirect unauth without flicker
   useEffect(() => {
+    if (sessionStatus === "loading") return;
+    if (!session?.user?.email || !userId) {
+      router.replace("/api/auth/signin");
+    }
+  }, [sessionStatus, session, userId, router]);
+
+  // Start local media immediately when user is authenticated
+  useEffect(() => {
+    if (!userId || sessionStatus !== "authenticated") return;
+
+    let stream: MediaStream | null = null;
     let mounted = true;
-    (async () => {
+
+    const startLocalStream = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
           audio: true,
         });
+
         if (!mounted) {
-          // stop tracks if unmounted before attach
-          stream.getTracks().forEach((t) => t.stop());
+          mediaStream.getTracks().forEach(t => t.stop());
           return;
         }
-        localStreamRef.current = stream;
+
+        stream = mediaStream;
+
+        // Attach to self video element immediately
         if (selfVideoRef.current) {
-          selfVideoRef.current.srcObject = stream;
-          selfVideoRef.current.muted = true;
+          selfVideoRef.current.srcObject = mediaStream;
+          selfVideoRef.current.play().catch(() => {});
         }
-        // placeholder preview until WebRTC wiring is done
-        if (strangerVideoRef.current)
-          strangerVideoRef.current.srcObject = stream;
-      } catch {
-        // ignore for now; could show a toast
+
+        // Also inform the WebRTC hook (important for sending stream later)
+        attachLocal(selfVideoRef.current);
+
+      } catch (err) {
+        console.error("Failed to access camera/mic:", err);
+        toast.error("Camera/microphone access denied or unavailable");
       }
-    })();
+    };
+
+    startLocalStream();
 
     return () => {
       mounted = false;
-      // stop local tracks
-      if (localStreamRef.current) {
-        localStreamRef.current.getTracks().forEach((t) => t.stop());
-        localStreamRef.current = null;
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
       }
     };
+  }, [userId, sessionStatus, attachLocal]);
+  // END OF NEW EFFECT
+
+  // start searching after auth OK from server - ONLY ONCE
+  useEffect(() => {
+    if (!userId || hasStartedRef.current) return;
+
+    const unsubscribe = onAuthOk(() => {
+      if (!hasStartedRef.current && (status === "idle" || status === "ended")) {
+        hasStartedRef.current = true;
+        start();
+      }
+    });
+
+    return () => {
+      unsubscribe?.();
+    };
+  }, [userId, status, start]);
+
+  // live IST clock
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      setCurrentTime(
+        now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: true }) + " IST"
+      );
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
   }, []);
 
-  // Mute/unmute actually toggles audio tracks
-  const toggleMute = useCallback(() => {
-    const stream = localStreamRef.current;
-    if (stream) {
-      stream.getAudioTracks().forEach((t) => (t.enabled = !t.enabled));
-      setIsMuted((p) => !p);
-    } else {
-      setIsMuted((p) => !p);
-    }
-  }, []);
-
-  // Video on/off actually toggles video tracks
-  const toggleVideo = useCallback(() => {
-    const stream = localStreamRef.current;
-    if (stream) {
-      stream.getVideoTracks().forEach((t) => (t.enabled = !t.enabled));
-      setIsVideoOff((p) => !p);
-    } else {
-      setIsVideoOff((p) => !p);
-    }
-  }, []);
-
-  // scroll messages
+  // scroll chat to bottom
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [chatMessages]);
 
-  // cleanup on unmount
+  // FIXED: Only cleanup WebRTC on unmount, NOT the socket
   useEffect(() => {
     return () => {
       try {
-        teardown(); // closes socket
-      } catch {}
+        endCall();
+      } catch (e) {
+        console.error("Error ending call on unmount:", e);
+      }
     };
-  }, [teardown]);
+  }, [endCall]);
 
-  const connectedOnceRef = useRef(false);
-  useEffect(() => {
-    if (status === "matched" && peer && !connectedOnceRef.current) {
-      setMessages((p) => [
-        ...p,
-        {
-          sender: "self",
-          text: `Connected to ${peer.username ?? peer.userId}`,
-        },
-      ]);
-      connectedOnceRef.current = true;
-    }
-    if (status !== "matched") {
-      connectedOnceRef.current = false; // reset when leaving matched (end/next)
-    }
-  }, [status, peer]);
-
-  // Chat (local-only placeholder)
+  // actions
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
-    setMessages((p) => [...p, { sender: "self", text: inputMessage.trim() }]);
+    const text = inputMessage.trim();
+    if (!text) return;
+    sendChatMessage(text);
     setInputMessage("");
   };
-  const removeKeyword = (i: number) =>
-    setKeywords((p) => p.filter((_, idx) => idx !== i));
 
-  // Start matching (button)
+  const removeKeyword = (i: number) => setKeywords((arr) => arr.filter((_, idx) => idx !== i));
+
   const handleStart = () => {
     if (!userId) {
       toast.error("Sign in to start matching.");
@@ -203,43 +210,61 @@ export default function VideoChatPage() {
       return;
     }
     if (status === "matched") return;
-    start(); // -> status becomes "searching"
+    clearChat();
+    hasStartedRef.current = false;
+    start();
   };
 
-  // NEXT: end current room then search again
   const handleNext = () => {
-    if (status === "matched" && roomId) {
-      next(); // your signaling.next() ends then re-requests match
-      setMessages((p) => [
-        ...p,
-        { sender: "self", text: "Skipped. Searching for new partner..." },
-      ]);
-    } else {
-      start(); // not matched? just (re)start searching
-      setMessages((p) => [
-        ...p,
-        { sender: "self", text: "Searching for a partner..." },
-      ]);
-    }
+    clearChat();
+    endCall();
+    hasStartedRef.current = false;
+    if (status === "matched" && roomId) next();
+    else start();
   };
 
-  // END: end and stop searching
   const handleEnd = () => {
-    end(); // ends room if exists, sets status "ended" (does NOT auto-requeue)
-    setMessages((p) => [...p, { sender: "self", text: "Ended chat." }]);
+    clearChat();
+    endCall();
+    hasStartedRef.current = false;
+    end();
   };
+
+  // ensure we end when leaving to Dashboard
+  const handleBackToDashboard = (e: React.MouseEvent) => {
+    e.preventDefault();
+    handleEnd();
+    router.push("/dashboard");
+  };
+
+  // toggle tracks + UI state
+  const onToggleMute = () => {
+    toggleAudio();
+    setIsMuted((m) => !m);
+  };
+  const onToggleVideo = () => {
+    toggleVideo();
+    setIsVideoOff((v) => !v);
+  };
+
+  const chatDisabled = !(status === "matched" && roomId);
+
+  // derive right-pane overlay state
+  const showSearching = status === "searching";
+  const showConnecting = status === "matched" && !connected;
 
   return (
     <div className="min-h-screen bg-[#0a0f0d] flex flex-col font-sans">
       {/* Header */}
       <header className="fixed top-0 inset-x-0 z-50 h-16 bg-black/40 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 text-white/80">
-        <Link
-          href="/dashboard"
+        <button
+          onClick={handleBackToDashboard}
           className="flex items-center gap-2 text-sm hover:text-white transition"
         >
           <ArrowLeft size={16} />
           <span className="hidden sm:inline">Dashboard</span>
-        </Link>
+        </button>
+
         <div className="flex items-center gap-2 text-xs font-medium">
           <Globe size={14} className="text-amber-400" />
           <span className="font-mono">{currentTime}</span>
@@ -248,48 +273,108 @@ export default function VideoChatPage() {
 
       {/* Main */}
       <div className="flex-1 flex flex-col pt-16">
-        {/* Video Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 flex-1 gap-4 p-4">
-          {/* Self */}
-          <div className="relative rounded-lg overflow-hidden bg-black/50 border border-white/10">
+        {/* Video Area */}
+        <div className="flex-1 p-4">
+          {/* Mobile (WhatsApp-style) — remote fills, self as PiP */}
+          <div className="relative md:hidden h-[52vh] min-h-[300px] rounded-lg overflow-hidden bg-black border border-white/10">
+            {/* Remote */}
             <video
-              ref={selfVideoRef}
+              ref={bindRemoteRef}
               autoPlay
-              muted
               playsInline
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover bg-black"
             />
-            <div className="absolute bottom-3 left-3 text-white bg-black/70 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 border border-white/20">
-              <User size={12} /> You
-            </div>
-            {isVideoOff && (
-              <div className="absolute inset-0 bg-black/90 flex items-center justify-center">
-                <VideoOff size={48} className="text-white/60" />
-              </div>
-            )}
-          </div>
-
-          {/* Stranger */}
-          <div className="relative rounded-lg overflow-hidden bg-black/50 border border-white/10">
-            {/* SEARCHING OVERLAY */}
-            {status === "searching" && (
-              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-4 z-20">
+            {/* Overlays */}
+            {showSearching && (
+              <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-4 z-20">
                 <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-sm text-white/80 font-medium">
-                  Searching for a partner...
-                </p>
+                <p className="text-sm text-white/80 font-medium">Searching for a partner...</p>
+              </div>
+            )}
+            {showConnecting && (
+              <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 z-20">
+                <div className="w-10 h-10 border-4 border-white/40 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-xs text-white/70">Connecting…</p>
               </div>
             )}
 
-            <video
-              ref={strangerVideoRef}
-              autoPlay
-              playsInline
-              className="w-full h-full object-cover"
-            />
+            {/* Remote label */}
             <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 border border-white/20">
               <Users size={12} />
-              <span>{peer?.username ?? peer?.userId}</span>
+              <span>{peer?.username ?? peer?.userId ?? "Waiting..."}</span>
+            </div>
+
+            {/* Self PiP (ALWAYS VISIBLE) */}
+            <div className="absolute bottom-3 right-3 z-30">
+              <div className="relative w-28 h-40 sm:w-32 sm:h-48 rounded-lg overflow-hidden border border-white/20 bg-black/70 shadow-lg">
+                <video
+                  /* reuse same binder; attaching to multiple elements is fine for MediaStreams */
+                  ref={bindSelfRef}
+                  autoPlay
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+                {/* When user's video is off, show a subtle cover */}
+                {isVideoOff && (
+                  <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
+                    <VideoOff size={28} className="text-white/60" />
+                  </div>
+                )}
+                <div className="absolute bottom-1.5 left-1.5 text-[10px] px-2 py-0.5 rounded-full bg-black/70 text-white/80 border border-white/20 flex items-center gap-1">
+                  <User size={10} /> You
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop/Tablet — original 2-column grid */}
+          <div className="hidden md:grid grid-cols-2 gap-4 h-[52vh] min-h-[360px]">
+            {/* Self tile (ALWAYS VISIBLE) */}
+            <div className="relative rounded-lg overflow-hidden bg-black/50 border border-white/10">
+              <video
+                ref={bindSelfRef}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-full object-cover bg-black"
+              />
+              <div className="absolute bottom-3 left-3 text-white bg-black/70 px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 border border-white/20">
+                <User size={12} /> You
+              </div>
+              {isVideoOff && (
+                <div className="absolute inset-0 bg-black/90 flex items-center justify-center">
+                  <VideoOff size={48} className="text-white/60" />
+                </div>
+              )}
+            </div>
+
+            {/* Stranger */}
+            <div className="relative rounded-lg overflow-hidden bg-black border border-white/10">
+              {showSearching && (
+                <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-4 z-20">
+                  <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-white/80 font-medium">Searching for a partner...</p>
+                </div>
+              )}
+
+              {showConnecting && (
+                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 z-20">
+                  <div className="w-10 h-10 border-4 border-white/40 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-xs text-white/70">Connecting…</p>
+                </div>
+              )}
+
+              <video
+                ref={bindRemoteRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover bg-black"
+              />
+              <div className="absolute bottom-3 left-3 bg-black/70 text-white px-3 py-1.5 rounded-full text-xs font-medium flex items-center gap-2 border border-white/20">
+                <Users size={12} />
+                <span>{peer?.username ?? peer?.userId ?? "Waiting..."}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -299,25 +384,29 @@ export default function VideoChatPage() {
           {/* Chat */}
           <div>
             <div className="bg-white/5 backdrop-blur-xl rounded-xl p-5 border border-white/10 w-full mx-auto">
-              <div className="h-32 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/20">
-                {messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`flex ${
-                      msg.sender === "self" ? "justify-end" : "justify-start"
-                    }`}
-                  >
-                    <div
-                      className={`max-w-[80%] px-4 py-2.5 rounded-lg text-sm font-medium ${
-                        msg.sender === "self"
-                          ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-black"
-                          : "bg-white/10 text-white/90"
-                      }`}
-                    >
-                      {msg.text}
+              <div className="h-64 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/20">
+                {chatMessages.map((msg) => {
+                  if (msg.system) {
+                    return (
+                      <div key={msg.id} className="text-center text-xs text-white/70 italic select-none">
+                        {msg.text}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={msg.id} className={`flex ${msg.self ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[80%] px-4 py-2.5 rounded-lg text-sm font-medium ${
+                          msg.self
+                            ? "bg-gradient-to-r from-amber-500 to-yellow-500 text-black"
+                            : "bg-white/10 text-white/90"
+                        }`}
+                      >
+                        {msg.text}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
                 <div ref={messageEndRef} />
               </div>
 
@@ -326,12 +415,14 @@ export default function VideoChatPage() {
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="Send a message..."
-                  className="flex-1 bg-white/10 border border-white/20 rounded-lg px-5 py-3 text-white placeholder-white/50 focus:border-amber-400 focus:outline-none transition text-sm"
+                  placeholder={chatDisabled ? "Not connected" : "Send a message..."}
+                  disabled={chatDisabled}
+                  className="flex-1 bg-white/10 border border-white/20 rounded-lg px-5 py-3 text-white placeholder-white/50 focus:border-amber-400 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <button
                   type="submit"
-                  className="p-3.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg hover:shadow-lg hover:shadow-amber-500/30"
+                  disabled={chatDisabled || !inputMessage.trim()}
+                  className="p-3.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg hover:shadow-lg hover:shadow-amber-500/30 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   <Send size={20} className="text-black" />
                 </button>
@@ -378,9 +469,10 @@ export default function VideoChatPage() {
               ) : (
                 <button
                   onClick={handleStart}
-                  className="flex items-center gap-3 px-8 py-4 bg-white/10 border border-white/30 text-white rounded-full hover:bg-white/20"
+                  disabled={status === "searching"}
+                  className="flex items-center gap-3 px-8 py-4 bg-white/10 border border-white/30 text-white rounded-full hover:bg-white/20 disabled:opacity-60"
                 >
-                  <RotateCcw size={22} /> Start Video Chat
+                  <RotateCcw size={22} /> {status === "searching" ? "Searching..." : "Start Video Chat"}
                 </button>
               )}
             </div>
@@ -388,33 +480,21 @@ export default function VideoChatPage() {
             {/* Controls */}
             <div className="flex justify-center items-center gap-8">
               <button
-                onClick={toggleMute}
+                onClick={onToggleMute}
                 className={`p-4 rounded-full ${
-                  isMuted
-                    ? "bg-red-500/30 border border-red-500/50"
-                    : "bg-white/10 border border-white/20 hover:bg-white/20"
+                  isMuted ? "bg-red-500/30 border border-red-500/50" : "bg-white/10 border border-white/20 hover:bg-white/20"
                 }`}
               >
-                {isMuted ? (
-                  <MicOff size={24} className="text-red-400" />
-                ) : (
-                  <Mic size={24} className="text-white" />
-                )}
+                {isMuted ? <MicOff size={24} className="text-red-400" /> : <Mic size={24} className="text-white" />}
               </button>
 
               <button
-                onClick={toggleVideo}
+                onClick={onToggleVideo}
                 className={`p-4 rounded-full ${
-                  isVideoOff
-                    ? "bg-red-500/30 border border-red-500/50"
-                    : "bg-white/10 border border-white/20 hover:bg-white/20"
+                  isVideoOff ? "bg-red-500/30 border border-red-500/50" : "bg-white/10 border border-white/20 hover:bg-white/20"
                 }`}
               >
-                {isVideoOff ? (
-                  <VideoOff size={24} className="text-red-400" />
-                ) : (
-                  <VideoIcon size={24} className="text-white" />
-                )}
+                {isVideoOff ? <VideoOff size={24} className="text-red-400" /> : <VideoIcon size={24} className="text-white" />}
               </button>
             </div>
           </div>

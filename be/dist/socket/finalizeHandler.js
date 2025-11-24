@@ -12,23 +12,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.handleEndRoom = handleEndRoom;
 const redisClient_1 = require("../utils/redis/redisClient");
 const scripts_1 = require("../utils/redis/scripts");
-function handleEndRoom(socket, payload) {
+function handleEndRoom(io, socket, payload) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a, _b, _c, _d, _e;
         const roomId = payload === null || payload === void 0 ? void 0 : payload.roomId;
         if (!roomId)
             return socket.emit("end:error", "roomId required");
         try {
-            // Run the finalize_room.lua script (it XADDs to stream:ended_rooms, deletes the room, publishes event)
+            // finalize room in Redis (publishes 'ended|roomId' on your pubsub)
             const raw = yield redisClient_1.redis.evalsha(scripts_1.scripts.finalizeSha, 0, roomId, String(Date.now()));
-            // script returns a JSON string payload (see finalize_room.lua)
             const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
             if (!parsed || !parsed.ok) {
-                // script indicated failure, forward the error to client
                 const errMsg = (parsed === null || parsed === void 0 ? void 0 : parsed.err) || "no-room";
                 return socket.emit("end:error", errMsg);
             }
-            // Inform the socket that finalization succeeded and include useful data
+            // 1) Confirm to the caller
             socket.emit("end:ok", {
                 roomId: parsed.roomId,
                 participants: parsed.participants || [],
@@ -37,6 +35,10 @@ function handleEndRoom(socket, payload) {
                 finalizedAt: (_b = parsed.finalizedAt) !== null && _b !== void 0 ? _b : null,
                 state: (_c = parsed.state) !== null && _c !== void 0 ? _c : null,
             });
+            // 2) Broadcast system message to both peers immediately (don’t wait on pubsub)
+            io.to(roomId).emit("chat:system", { text: "Chat ended" });
+            // 3) (Optional) force leave locally to prevent further messages
+            io.in(roomId).socketsLeave(roomId);
         }
         catch (err) {
             console.error("finalize error", err);

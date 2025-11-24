@@ -40,6 +40,7 @@ function makeClient(label: string) {
 
 export const redis = makeClient("main");
 export const sub   = makeClient("sub");
+export const pub   = makeClient("pub");
 
 export async function safeEvalSha(sha: string, ...args: unknown[]) {
   return redis.evalsha(sha, 0, ...(args as string[]));

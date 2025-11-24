@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Header from "./Header";
-import { useSignaling } from "@/lib/SocketProvider";
+import { useSignaling } from "@/hooks/SocketProvider";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 

@@ -12,7 +12,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// src/workers/streamToNextMVP.ts
 const ioredis_1 = __importDefault(require("ioredis"));
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const REDIS_URL = process.env.REDIS_URL || "redis://127.0.0.1:6379";
@@ -103,7 +102,6 @@ function ackAndDelete(ids) {
             yield redis.xdel(STREAM_KEY, ...ids);
         }
         catch (e) {
-            // Not fatal; may lead to benign reprocessing (upsert must be idempotent)
             console.error("[worker] XDEL error", e);
         }
     });

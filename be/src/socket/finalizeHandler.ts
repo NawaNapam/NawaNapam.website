@@ -1,24 +1,32 @@
-import { Socket } from "socket.io";
+// handlers/finalizeHandler.ts
+import type { Server, Socket } from "socket.io";
 import { redis } from "../utils/redis/redisClient";
 import { scripts } from "../utils/redis/scripts";
 
-export async function handleEndRoom(socket: Socket, payload: any) {
+export async function handleEndRoom(
+  io: Server,
+  socket: Socket,
+  payload: any
+) {
   const roomId = payload?.roomId;
   if (!roomId) return socket.emit("end:error", "roomId required");
 
   try {
-    // Run the finalize_room.lua script (it XADDs to stream:ended_rooms, deletes the room, publishes event)
-    const raw = await redis.evalsha(scripts.finalizeSha!, 0, roomId, String(Date.now()));
-    // script returns a JSON string payload (see finalize_room.lua)
+    // finalize room in Redis (publishes 'ended|roomId' on your pubsub)
+    const raw = await redis.evalsha(
+      scripts.finalizeSha!,
+      0,
+      roomId,
+      String(Date.now())
+    );
     const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
 
     if (!parsed || !parsed.ok) {
-      // script indicated failure, forward the error to client
       const errMsg = parsed?.err || "no-room";
       return socket.emit("end:error", errMsg);
     }
 
-    // Inform the socket that finalization succeeded and include useful data
+    // 1) Confirm to the caller
     socket.emit("end:ok", {
       roomId: parsed.roomId,
       participants: parsed.participants || [],
@@ -27,6 +35,12 @@ export async function handleEndRoom(socket: Socket, payload: any) {
       finalizedAt: parsed.finalizedAt ?? null,
       state: parsed.state ?? null,
     });
+
+    // 2) Broadcast system message to both peers immediately (don’t wait on pubsub)
+    io.to(roomId).emit("chat:system", { text: "Chat ended" });
+
+    // 3) (Optional) force leave locally to prevent further messages
+    io.in(roomId).socketsLeave(roomId);
   } catch (err: any) {
     console.error("finalize error", err);
     try {
@@ -41,7 +55,6 @@ export async function handleEndRoom(socket: Socket, payload: any) {
     } catch (pushErr) {
       console.error("failed to push persist:retry", pushErr);
     }
-
     socket.emit("end:error", String(err?.message ?? err));
   }
 }
