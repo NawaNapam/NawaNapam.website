@@ -15,7 +15,7 @@ export default function CompleteProfile() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if(!phoneNumber || !gender) alert("Please fill the data");
+    if (!phoneNumber || !gender) alert("Please fill the data");
 
     const phoneRegex = /^[0-9]{10}$/;
     if (!phoneRegex.test(phoneNumber)) {
@@ -24,7 +24,7 @@ export default function CompleteProfile() {
     }
 
     setLoading(true);
-    
+
     const res = await fetch("/api/updateuser", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -55,9 +55,9 @@ export default function CompleteProfile() {
             onChange={(e) => setCountryCode(e.target.value)}
             className="w-24 h-12 bg-white/10 border-amber-500/30 text-amber-500/90 rounded-md focus:border-amber-400 p-2"
           >
-            <option value="+91">🇮🇳 +91</option>
-            <option value="+1">🇺🇸 +1</option>
-            <option value="+44">🇬🇧 +44</option>
+            <option value="+91"> +91</option>
+            <option value="+1"> +1</option>
+            <option value="+44"> +44</option>
           </select>
           <Input
             type="tel"
@@ -81,7 +81,11 @@ export default function CompleteProfile() {
           <option value="OTHER">Other</option>
         </select>
 
-        <Button type="submit" disabled={loading} className="w-full h-13 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold text-lg rounded-md shadow-xl cursor-pointer">
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full h-13 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold text-lg rounded-md shadow-xl cursor-pointer"
+        >
           {loading ? "Updating..." : "Continue"}
         </Button>
       </form>

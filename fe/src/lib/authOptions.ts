@@ -72,22 +72,22 @@ export const authOptions: NextAuthOptions = {
         token.phoneNumber = user.phoneNumber;
         token.gender = user.gender;
       }
-      
+
       // On update (if you use session update), refresh from DB
       if (trigger === "update" && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { 
-            id: true, 
-            username: true, 
-            name: true, 
-            email: true, 
-            image: true, 
-            phoneNumber: true, 
-            gender: true 
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            email: true,
+            image: true,
+            phoneNumber: true,
+            gender: true,
           },
         });
-        
+
         if (dbUser) {
           token.username = dbUser.username as string;
           token.name = dbUser.name;
@@ -97,25 +97,28 @@ export const authOptions: NextAuthOptions = {
           token.gender = dbUser.gender || undefined;
         }
       }
-      
+
       // If data is missing but we have an ID, fetch it from DB
-      if (token.id && (!token.username || !token.phoneNumber || !token.gender)) {
+      if (
+        token.id &&
+        (!token.username || !token.phoneNumber || !token.gender)
+      ) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { 
-            username: true, 
-            phoneNumber: true, 
-            gender: true 
+          select: {
+            username: true,
+            phoneNumber: true,
+            gender: true,
           },
         });
-        
+
         if (dbUser) {
           if (dbUser.username) token.username = dbUser.username;
           if (dbUser.phoneNumber) token.phoneNumber = dbUser.phoneNumber;
           if (dbUser.gender) token.gender = dbUser.gender;
         }
       }
-      
+
       return token;
     },
 
@@ -125,28 +128,33 @@ export const authOptions: NextAuthOptions = {
         session.user.username = token.username as string | undefined;
         session.user.phoneNumber = token.phoneNumber as string | undefined;
         session.user.gender = token.gender as "MALE" | "FEMALE" | "OTHER";
-        
+
         // Fallback: if still missing data, fetch from DB
-        if (!session.user.username || !session.user.phoneNumber || !session.user.gender) {
+        if (
+          !session.user.username ||
+          !session.user.phoneNumber ||
+          !session.user.gender
+        ) {
           const dbUser = await prisma.user.findUnique({
             where: { id: session.user.id },
-            select: { 
-              username: true, 
-              phoneNumber: true, 
-              gender: true 
+            select: {
+              username: true,
+              phoneNumber: true,
+              gender: true,
             },
           });
-          
+
           if (dbUser) {
             if (dbUser.username) session.user.username = dbUser.username;
-            if (dbUser.phoneNumber) session.user.phoneNumber = dbUser.phoneNumber;
+            if (dbUser.phoneNumber)
+              session.user.phoneNumber = dbUser.phoneNumber;
             if (dbUser.gender) session.user.gender = dbUser.gender;
           }
         }
       }
       return session;
     },
-    
+
     async redirect({ url, baseUrl }) {
       if (url.startsWith("/")) return `${baseUrl}/dashboard`;
       else if (new URL(url).origin === baseUrl) return url;
