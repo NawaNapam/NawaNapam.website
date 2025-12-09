@@ -6,10 +6,12 @@ import Footer from "@/components/custom/Footer";
 
 export default function Landing() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f1a0f] via-[#1a2d1a] to-[#0f1a0f]">
+    <main className="min-h-screen flex flex-col bg-gradient-to-br from-[#0f1a0f] via-[#1a2d1a] to-[#0f1a0f]">
       <Header />
-      <HeroSection />
+      <section className="flex-1 flex flex-col justify-center items-center w-full">
+        <HeroSection />
+      </section>
       <Footer />
-    </div>
+    </main>
   );
 }
