@@ -39,6 +39,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
   const [remoteStreamReady, setRemoteStreamReady] = useState(false);
   const [userInteracted, setUserInteracted] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isStreamSwapped, setIsStreamSwapped] = useState(false); // Track if streams are swapped
 
   // refs
   const selfVideoMobileRef = useRef<HTMLVideoElement | null>(null);
@@ -146,15 +147,23 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
       const selfEl = getSelfEl();
       const remoteEl = getRemoteEl();
 
-      if (selfEl?.srcObject) {
+      if (selfEl?.srcObject && selfEl.paused) {
         const p = selfEl.play();
         if (p && typeof p.catch === "function")
-          p.catch((e) => console.warn("[Mobile] Self video play failed:", e));
+          p.catch((e) => {
+            if (e.name !== "AbortError") {
+              console.warn("[Mobile] Self video play failed:", e);
+            }
+          });
       }
-      if (remoteEl?.srcObject) {
+      if (remoteEl?.srcObject && remoteEl.paused) {
         const p = remoteEl.play();
         if (p && typeof p.catch === "function")
-          p.catch((e) => console.warn("[Mobile] Remote video play failed:", e));
+          p.catch((e) => {
+            if (e.name !== "AbortError") {
+              console.warn("[Mobile] Remote video play failed:", e);
+            }
+          });
       }
     };
 
@@ -446,6 +455,11 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
     toast.info("Chat ended. Your camera is still on.");
   };
 
+  const handleSwapStreams = () => {
+    console.log("[Action] 🔄 Swapping video streams");
+    setIsStreamSwapped((prev) => !prev);
+  };
+
   useEffect(() => {
     if (!userId || hasStartedRef.current) return;
 
@@ -628,30 +642,128 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
               zIndex: 1,
             }}
           >
-            {/* Remote video - FIXED: Always rendered and visible */}
-            <video
-              ref={strangerVideoMobileRef}
-              autoPlay
-              playsInline
-              muted={false}
-              webkit-playsinline="true"
-              x-webkit-airplay="allow"
-              className="w-full h-full object-cover bg-black"
+            {/* Remote video - positioned based on swap state */}
+            <div
+              onClick={handleSwapStreams}
+              className="cursor-pointer"
               style={{
-                display: "block",
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
+                position: "absolute",
+                ...(isStreamSwapped
+                  ? {
+                      top: "80px",
+                      right: "12px",
+                      width: "100px",
+                      height: "140px",
+                      zIndex: 50,
+                    }
+                  : {
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      zIndex: 1,
+                    }),
               }}
-              onLoadedMetadata={(e) => {
-                console.log("[Video] Remote metadata loaded");
-                e.currentTarget.play().catch(() => {});
+            >
+              <video
+                ref={strangerVideoMobileRef}
+                autoPlay
+                playsInline
+                muted={false}
+                webkit-playsinline="true"
+                x-webkit-airplay="allow"
+                className="w-full h-full object-cover bg-black rounded-xl"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: isStreamSwapped ? "12px" : "0",
+                  border: isStreamSwapped
+                    ? "2px solid rgba(16, 185, 129, 0.4)"
+                    : "none",
+                }}
+                onLoadedMetadata={(e) => {
+                  console.log("[Video] Remote metadata loaded");
+                  if (e.currentTarget.paused) {
+                    e.currentTarget.play().catch((err) => {
+                      console.log("[Video] Remote play failed:", err.name);
+                    });
+                  }
+                }}
+              />
+            </div>
+
+            {/* Local video - positioned based on swap state */}
+            <div
+              onClick={handleSwapStreams}
+              className="cursor-pointer"
+              style={{
+                position: "absolute",
+                ...(isStreamSwapped
+                  ? {
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      zIndex: 1,
+                    }
+                  : {
+                      top: "80px",
+                      right: "12px",
+                      width: "100px",
+                      height: "140px",
+                      zIndex: 50,
+                    }),
               }}
-              onCanPlay={(e) => {
-                console.log("[Video] Remote can play");
-                e.currentTarget.play().catch(() => {});
-              }}
-            />
+            >
+              <video
+                ref={selfVideoMobileRef}
+                autoPlay
+                playsInline
+                muted={true}
+                webkit-playsinline="true"
+                x-webkit-airplay="allow"
+                className="w-full h-full object-cover bg-black"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  borderRadius: isStreamSwapped ? "0" : "12px",
+                  border: isStreamSwapped
+                    ? "none"
+                    : "2px solid rgba(16, 185, 129, 0.4)",
+                  transform: "scaleX(-1)",
+                }}
+                onLoadedMetadata={(e) => {
+                  console.log("[Video] Local metadata loaded");
+                  if (e.currentTarget.paused) {
+                    e.currentTarget.play().catch((err) => {
+                      console.log("[Video] Local play failed:", err.name);
+                    });
+                  }
+                }}
+              />
+              {/* Video off overlay - only show when local is in PiP and video is off */}
+              {!isStreamSwapped && isVideoOff && (
+                <div
+                  className="absolute inset-0 bg-black/90 flex items-center justify-center z-10"
+                  style={{ borderRadius: "12px" }}
+                >
+                  <VideoOff size={24} className="text-white/60" />
+                </div>
+              )}
+              {/* Loading indicator if stream not ready */}
+              {!isStreamSwapped && !localStreamReady && (
+                <div
+                  className="absolute inset-0 bg-black/90 flex items-center justify-center z-10"
+                  style={{ borderRadius: "12px" }}
+                >
+                  <div className="w-6 h-6 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              )}
+            </div>
 
             {/* Overlays - FIXED z-index and visibility logic */}
             {showSearching && (
@@ -676,8 +788,8 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
               </div>
             )}
 
-            {/* No stream placeholder - only show when actually not connected */}
-            {isFullyConnected && !remoteStreamReady && (
+            {/* No stream placeholder - only show when remote is in main view and not connected */}
+            {isFullyConnected && !remoteStreamReady && !isStreamSwapped && (
               <div
                 className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-3"
                 style={{ zIndex: 15, pointerEvents: "none" }}
@@ -687,98 +799,83 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
               </div>
             )}
 
-            {/* Self PiP - top right corner like reference image */}
-            <div
-              className="absolute md:hidden rounded-xl overflow-hidden border-2 border-emerald-500/40 bg-black shadow-2xl"
-              style={{
-                top: "80px",
-                right: "12px",
-                zIndex: 50,
-                position: "absolute",
-                width: "100px",
-                height: "140px",
-              }}
-            >
-              {/* <div
-                className="relative rounded-xl overflow-hidden border-2 border-emerald-500/40 bg-black shadow-2xl"
-                style={{
-                  width: "100px",
-                  height: "140px",
-                }}
-              > */}
-              <video
-                ref={selfVideoMobileRef}
-                autoPlay
-                muted
-                playsInline
-                webkit-playsinline="true"
-                x-webkit-airplay="allow"
-                className="w-full h-full object-cover"
-                style={{
-                  display: "block",
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                }}
-                onLoadedMetadata={(e) => {
-                  console.log("[Video] Local metadata loaded");
-                  e.currentTarget.play().catch(() => {});
-                }}
-                onCanPlay={(e) => {
-                  console.log("[Video] Local can play");
-                  e.currentTarget.play().catch(() => {});
-                }}
-              />
-              {/* Video off overlay */}
-              {isVideoOff && (
-                <div className="absolute inset-0 bg-black/90 flex items-center justify-center">
-                  <VideoOff size={24} className="text-white/60" />
-                </div>
-              )}
-              {/* Loading indicator if stream not ready */}
-              {!localStreamReady && (
-                <div className="absolute inset-0 bg-black/90 flex items-center justify-center">
-                  <div className="w-6 h-6 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></div>
-                </div>
-              )}
-              {/* </div> */}
-            </div>
+            {/* Video off overlay when local video is in main view */}
+            {isStreamSwapped && isVideoOff && (
+              <div
+                className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-3"
+                style={{ zIndex: 15, pointerEvents: "none" }}
+              >
+                <VideoOff size={48} className="text-white/40" />
+                <p className="text-xs text-white/60">Your video is off</p>
+              </div>
+            )}
+            {/* </div> */}
           </div>
+        </div>
 
-          {/* Desktop/Tablet Layout */}
-          <div className="hidden md:grid grid-cols-12 gap-4 absolute inset-0 w-full h-full p-4 overflow-hidden">
-            {/* Main Video Area - 9 columns */}
-            <div className="col-span-9 h-full w-full overflow-hidden">
-              {/* Stranger - Large */}
-              <div className="relative rounded-2xl overflow-hidden bg-black border border-emerald-500/20 shadow-2xl h-full w-full">
-                {showSearching && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20">
-                    <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-sm text-white/90 font-medium">
-                      Finding someone for you...
-                    </p>
-                  </div>
-                )}
+        {/* Desktop/Tablet Layout */}
+        <div className="hidden md:grid grid-cols-12 gap-4 absolute inset-0 w-full h-full p-4 overflow-hidden">
+          {/* Main Video Area - 9 columns */}
+          <div className="col-span-9 h-full w-full overflow-hidden">
+            {/* Main video container */}
+            <div className="relative rounded-2xl overflow-hidden bg-black border border-emerald-500/20 shadow-2xl h-full w-full">
+              {showSearching && (
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20">
+                  <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-sm text-white/90 font-medium">
+                    Finding someone for you...
+                  </p>
+                </div>
+              )}
 
-                {showConnecting && (
-                  <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 z-20">
-                    <div className="w-10 h-10 border-4 border-white/40 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-xs text-white/70">Connecting…</p>
-                  </div>
-                )}
+              {showConnecting && (
+                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3 z-20">
+                  <div className="w-10 h-10 border-4 border-white/40 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-xs text-white/70">Connecting…</p>
+                </div>
+              )}
 
+              {/* Remote video - main or PiP based on swap */}
+              <div
+                onClick={handleSwapStreams}
+                className="cursor-pointer"
+                style={{
+                  position: "absolute",
+                  ...(isStreamSwapped
+                    ? {
+                        bottom: "16px",
+                        right: "16px",
+                        width: "192px",
+                        height: "144px",
+                        zIndex: 30,
+                      }
+                    : {
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        zIndex: 1,
+                      }),
+                }}
+              >
                 <video
                   ref={strangerVideoDesktopRef}
                   autoPlay
                   playsInline
                   muted={false}
                   className="w-full h-full object-cover bg-black"
-                  style={{ display: "block" }}
+                  style={{
+                    display: "block",
+                    borderRadius: isStreamSwapped ? "12px" : "0",
+                    border: isStreamSwapped
+                      ? "2px solid rgba(16, 185, 129, 0.4)"
+                      : "none",
+                  }}
                   x-webkit-airplay="allow"
                   webkit-playsinline="true"
                 />
-
-                {isFullyConnected && !remoteStreamReady && (
+                {/* Remote video not ready overlay */}
+                {isFullyConnected && !remoteStreamReady && !isStreamSwapped && (
                   <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-3 z-10">
                     <VideoOff size={48} className="text-white/40" />
                     <p className="text-xs text-white/60">
@@ -786,302 +883,192 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                     </p>
                   </div>
                 )}
-
-                {isFullyConnected && (
-                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border border-emerald-500/30">
-                    <Users size={14} />
-                    <span>{peer?.username ?? "Stranger"}</span>
+                {/* Label when remote is in PiP */}
+                {isStreamSwapped && (
+                  <div className="absolute bottom-2 left-2 text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-emerald-500/30">
+                    <Users size={10} /> {peer?.username ?? "Stranger"}
                   </div>
                 )}
+              </div>
 
-                {/* Self PiP on Desktop - bottom right */}
-                <div className="absolute bottom-4 right-4 w-48 h-36 rounded-xl overflow-hidden border-2 border-emerald-500/40 bg-black shadow-2xl z-30">
-                  <video
-                    ref={selfVideoDesktopRef}
-                    autoPlay
-                    muted
-                    playsInline
-                    className="w-full h-full object-cover"
-                    style={{ display: "block" }}
-                    x-webkit-airplay="allow"
-                    webkit-playsinline="true"
-                  />
-                  {isVideoOff && (
-                    <div className="absolute inset-0 bg-black/90 flex items-center justify-center">
-                      <VideoOff size={32} className="text-white/60" />
-                    </div>
-                  )}
-                  {!localStreamReady && (
-                    <div className="absolute inset-0 bg-black/90 flex items-center justify-center">
-                      <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  )}
+              {/* Local video - main or PiP based on swap */}
+              <div
+                onClick={handleSwapStreams}
+                className="cursor-pointer hover:border-emerald-400/60 transition-all"
+                style={{
+                  position: "absolute",
+                  ...(isStreamSwapped
+                    ? {
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        zIndex: 1,
+                      }
+                    : {
+                        bottom: "16px",
+                        right: "16px",
+                        width: "192px",
+                        height: "144px",
+                        zIndex: 30,
+                      }),
+                }}
+              >
+                <video
+                  ref={selfVideoDesktopRef}
+                  autoPlay
+                  muted={true}
+                  playsInline
+                  className="w-full h-full object-cover"
+                  style={{
+                    display: "block",
+                    borderRadius: isStreamSwapped ? "0" : "12px",
+                    border: isStreamSwapped
+                      ? "none"
+                      : "2px solid rgba(16, 185, 129, 0.4)",
+                    transform: "scaleX(-1)",
+                  }}
+                  x-webkit-airplay="allow"
+                  webkit-playsinline="true"
+                />
+                {/* Video off overlay */}
+                {!isStreamSwapped && isVideoOff && (
+                  <div
+                    className="absolute inset-0 bg-black/90 flex items-center justify-center"
+                    style={{ borderRadius: "12px" }}
+                  >
+                    <VideoOff size={32} className="text-white/60" />
+                  </div>
+                )}
+                {isStreamSwapped && isVideoOff && (
+                  <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-3 z-10">
+                    <VideoOff size={48} className="text-white/40" />
+                    <p className="text-xs text-white/60">Your video is off</p>
+                  </div>
+                )}
+                {/* Loading overlay */}
+                {!isStreamSwapped && !localStreamReady && (
+                  <div
+                    className="absolute inset-0 bg-black/90 flex items-center justify-center"
+                    style={{ borderRadius: "12px" }}
+                  >
+                    <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                )}
+                {/* Label */}
+                {!isStreamSwapped && (
                   <div className="absolute bottom-2 left-2 text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-emerald-500/30">
                     <User size={10} /> You
                   </div>
+                )}
+              </div>
+
+              {/* Label when remote is in main view */}
+              {isFullyConnected && !isStreamSwapped && (
+                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border border-emerald-500/30 z-20">
+                  <Users size={14} />
+                  <span>{peer?.username ?? "Stranger"}</span>
+                </div>
+              )}
+
+              {/* Label when local is in main view */}
+              {isStreamSwapped && (
+                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border border-emerald-500/30 z-20">
+                  <User size={14} />
+                  <span>You</span>
+                </div>
+              )}
+
+              {/* Control Bar Overlay on Desktop */}
+              <div className="absolute bottom-4 left-4 right-56 flex items-center justify-between z-40">
+                <div className="flex items-center gap-3">
+                  {/* Action Buttons */}
+                  {status === "matched" ? (
+                    <button
+                      onClick={handleNext}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-white rounded-full transition-all shadow-lg font-medium text-sm"
+                    >
+                      <RotateCcw size={16} /> Next
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleStart}
+                      disabled={status === "searching"}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 text-white rounded-full transition-all shadow-lg font-medium text-sm disabled:opacity-60"
+                    >
+                      <RotateCcw size={16} />
+                      {status === "searching" ? "Searching..." : "Start"}
+                    </button>
+                  )}
+                  <button
+                    onClick={handleEnd}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-red-500/80 backdrop-blur-md hover:bg-red-600 border border-red-500/40 text-white rounded-full transition-all shadow-lg font-medium text-sm"
+                  >
+                    <Power size={16} /> End
+                  </button>
                 </div>
 
-                {/* Control Bar Overlay on Desktop */}
-                <div className="absolute bottom-4 left-4 right-56 flex items-center justify-between z-40">
-                  <div className="flex items-center gap-3">
-                    {/* Action Buttons */}
-                    {status === "matched" ? (
-                      <button
-                        onClick={handleNext}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-white rounded-full transition-all shadow-lg font-medium text-sm"
-                      >
-                        <RotateCcw size={16} /> Next
-                      </button>
+                <div className="flex items-center gap-3">
+                  {/* Controls */}
+                  <button
+                    onClick={onToggleMute}
+                    className={`p-3 rounded-full transition-all shadow-lg backdrop-blur-md ${
+                      isMuted
+                        ? "bg-red-500/80"
+                        : "bg-black/60 border border-emerald-500/30 hover:bg-black/80"
+                    }`}
+                  >
+                    {isMuted ? (
+                      <MicOff size={20} className="text-white" />
                     ) : (
-                      <button
-                        onClick={handleStart}
-                        disabled={status === "searching"}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 text-white rounded-full transition-all shadow-lg font-medium text-sm disabled:opacity-60"
-                      >
-                        <RotateCcw size={16} />
-                        {status === "searching" ? "Searching..." : "Start"}
-                      </button>
+                      <Mic size={20} className="text-white" />
                     )}
-                    <button
-                      onClick={handleEnd}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-red-500/80 backdrop-blur-md hover:bg-red-600 border border-red-500/40 text-white rounded-full transition-all shadow-lg font-medium text-sm"
-                    >
-                      <Power size={16} /> End
-                    </button>
-                  </div>
+                  </button>
 
-                  <div className="flex items-center gap-3">
-                    {/* Controls */}
-                    <button
-                      onClick={onToggleMute}
-                      className={`p-3 rounded-full transition-all shadow-lg backdrop-blur-md ${
-                        isMuted
-                          ? "bg-red-500/80"
-                          : "bg-black/60 border border-emerald-500/30 hover:bg-black/80"
-                      }`}
-                    >
-                      {isMuted ? (
-                        <MicOff size={20} className="text-white" />
-                      ) : (
-                        <Mic size={20} className="text-white" />
-                      )}
-                    </button>
-
-                    <button
-                      onClick={onToggleVideo}
-                      className={`p-3 rounded-full transition-all shadow-lg backdrop-blur-md ${
-                        isVideoOff
-                          ? "bg-red-500/80"
-                          : "bg-black/60 border border-emerald-500/30 hover:bg-black/80"
-                      }`}
-                    >
-                      {isVideoOff ? (
-                        <VideoOff size={20} className="text-white" />
-                      ) : (
-                        <VideoIcon size={20} className="text-white" />
-                      )}
-                    </button>
-                  </div>
+                  <button
+                    onClick={onToggleVideo}
+                    className={`p-3 rounded-full transition-all shadow-lg backdrop-blur-md ${
+                      isVideoOff
+                        ? "bg-red-500/80"
+                        : "bg-black/60 border border-emerald-500/30 hover:bg-black/80"
+                    }`}
+                  >
+                    {isVideoOff ? (
+                      <VideoOff size={20} className="text-white" />
+                    ) : (
+                      <VideoIcon size={20} className="text-white" />
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
-
-            {/* Right Sidebar - Chat - 3 columns */}
-            <div className="col-span-3 h-full overflow-hidden">
-              <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-emerald-500/20 shadow-xl flex flex-col h-full w-full overflow-hidden">
-                {/* Chat Header */}
-                <div className="p-4 border-b border-white/10 bg-black/20">
-                  <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                    <MessageCircle size={16} className="text-emerald-400" />
-                    Chat
-                  </h3>
-                </div>
-
-                {/* Chat Messages */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-emerald-500/20">
-                  {chatMessages.map((msg) => {
-                    if (msg.system) {
-                      return (
-                        <div
-                          key={msg.id}
-                          className="text-center text-xs text-white/70 italic select-none"
-                        >
-                          {msg.text}
-                        </div>
-                      );
-                    }
-                    return (
-                      <div
-                        key={msg.id}
-                        className={`flex ${
-                          msg.self ? "justify-end" : "justify-start"
-                        }`}
-                      >
-                        <div
-                          className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm font-medium ${
-                            msg.self
-                              ? "bg-gradient-to-r from-emerald-500 to-amber-500 text-white"
-                              : "bg-white/10 text-white/90"
-                          }`}
-                        >
-                          {msg.text}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div ref={messageEndRef} />
-                </div>
-
-                {/* Chat Input */}
-                <form
-                  onSubmit={sendMessage}
-                  className="p-4 border-t border-white/10 bg-black/20"
-                >
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      placeholder={
-                        chatDisabled ? "Not connected" : "Type a message..."
-                      }
-                      disabled={chatDisabled}
-                      className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white placeholder-white/50 focus:border-emerald-400 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                    />
-                    <button
-                      type="submit"
-                      disabled={chatDisabled || !inputMessage.trim()}
-                      className="p-2 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
-                    >
-                      <Send size={16} className="text-white" />
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
           </div>
-        </div>
 
-        {/* Bottom Controls - Mobile */}
-        <div
-          className="md:hidden fixed bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/95 to-transparent overflow-hidden pointer-events-none"
-          style={{
-            zIndex: 100,
-            paddingBottom: "16px",
-            paddingTop: "24px",
-          }}
-        >
-          <div className="flex justify-center items-center gap-3 px-4 pointer-events-auto">
-            {/* Mute Button */}
-            <button
-              onClick={onToggleMute}
-              className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                isMuted
-                  ? "bg-red-500/90 backdrop-blur-md"
-                  : "bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20"
-              }`}
-            >
-              {isMuted ? (
-                <MicOff size={22} className="text-white" />
-              ) : (
-                <Mic size={22} className="text-white" />
-              )}
-            </button>
-
-            {/* Chat Button */}
-            <button
-              onClick={() => setIsChatOpen(!isChatOpen)}
-              className="w-12 h-12 flex-shrink-0 rounded-full bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20 flex items-center justify-center transition-all shadow-lg relative"
-            >
-              <MessageCircle size={20} className="text-white" />
-              {chatMessages.length > 0 && !isChatOpen && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full text-[9px] font-bold flex items-center justify-center text-black">
-                  {chatMessages.filter((m) => !m.system && !m.self).length}
-                </span>
-              )}
-            </button>
-
-            {/* End Call Button */}
-            <button
-              onClick={handleEnd}
-              className="w-12 h-12 flex-shrink-0 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-lg"
-            >
-              <Power size={22} className="text-white" />
-            </button>
-
-            {/* Video Toggle Button */}
-            <button
-              onClick={onToggleVideo}
-              className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center transition-all shadow-lg ${
-                isVideoOff
-                  ? "bg-red-500/90 backdrop-blur-md"
-                  : "bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20"
-              }`}
-            >
-              {isVideoOff ? (
-                <VideoOff size={20} className="text-white" />
-              ) : (
-                <VideoIcon size={20} className="text-white" />
-              )}
-            </button>
-
-            {/* Next/Start Button */}
-            {status === "matched" ? (
-              <button
-                onClick={handleNext}
-                className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-white transition-all shadow-lg flex items-center justify-center"
-              >
-                <RotateCcw size={20} />
-              </button>
-            ) : (
-              <button
-                onClick={handleStart}
-                disabled={status === "searching"}
-                className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 text-white transition-all shadow-lg flex items-center justify-center disabled:opacity-60"
-              >
-                <RotateCcw size={20} />
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Mobile Chat Overlay */}
-        {isChatOpen && (
-          <div
-            className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-            onClick={() => setIsChatOpen(false)}
-          >
-            <div
-              className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-900 to-slate-800 rounded-t-3xl border-t border-emerald-500/20 shadow-2xl max-h-[70vh] flex flex-col"
-              onClick={(e) => e.stopPropagation()}
-            >
+          {/* Right Sidebar - Chat - 3 columns */}
+          <div className="col-span-3 h-full overflow-hidden">
+            <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-emerald-500/20 shadow-xl flex flex-col h-full w-full overflow-hidden">
               {/* Chat Header */}
-              <div className="flex items-center justify-between p-4 border-b border-white/10">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                  <MessageCircle size={20} className="text-emerald-400" />
+              <div className="p-4 border-b border-white/10 bg-black/20">
+                <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                  <MessageCircle size={16} className="text-emerald-400" />
                   Chat
                 </h3>
-                <button
-                  onClick={() => setIsChatOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
-                >
-                  <X size={18} className="text-white" />
-                </button>
               </div>
 
               {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-emerald-500/20">
                 {chatMessages.map((msg) => {
-                  if (msg.system) {
-                    return (
-                      <div
-                        key={msg.id}
-                        className="text-center text-xs text-white/70 italic select-none"
-                      >
-                        {msg.text}
-                      </div>
-                    );
-                  }
+                  // if (msg.system) {
+                  //   return (
+                  //     <div
+                  //       key={msg.id}
+                  //       className="text-center text-xs text-white/70 italic select-none"
+                  //     >
+                  //       {msg.text}
+                  //     </div>
+                  //   );
+                  // }
+                  if (msg.system) return null;
                   return (
                     <div
                       key={msg.id}
@@ -1090,7 +1077,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                       }`}
                     >
                       <div
-                        className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm font-medium ${
+                        className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm font-medium ${
                           msg.self
                             ? "bg-gradient-to-r from-emerald-500 to-amber-500 text-white"
                             : "bg-white/10 text-white/90"
@@ -1118,43 +1105,151 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                       chatDisabled ? "Not connected" : "Type a message..."
                     }
                     disabled={chatDisabled}
-                    className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-emerald-400 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white placeholder-white/50 focus:border-emerald-400 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <button
                     type="submit"
                     disabled={chatDisabled || !inputMessage.trim()}
-                    className="p-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="p-2 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
-                    <Send size={18} className="text-white" />
+                    <Send size={16} className="text-white" />
                   </button>
                 </div>
               </form>
             </div>
           </div>
-        )}
-
-        {/* Desktop Chat Sidebar - Now moved to right side */}
-        <div className="hidden md:block">
-          {/* Chat is in sidebar - see above */}
         </div>
+      </div>
 
-        {/* Hidden old desktop panel - replaced by new layout */}
-        <div className="hidden">
-          {/* Chat */}
-          <div className="w-full">
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 shadow-xl">
-              <div className="h-64 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/20">
-                {chatMessages.map((msg) => {
-                  if (msg.system) {
-                    return (
-                      <div
-                        key={msg.id}
-                        className="text-center text-xs text-white/70 italic select-none"
-                      >
-                        {msg.text}
-                      </div>
-                    );
-                  }
+      {/* Bottom Controls - Mobile */}
+      <div
+        className="md:hidden fixed bottom-0 inset-x-0 bg-gradient-to-t from-black via-black/95 to-transparent overflow-hidden pointer-events-none"
+        style={{
+          zIndex: 100,
+          paddingBottom: "16px",
+          paddingTop: "24px",
+        }}
+      >
+        <div className="flex justify-center items-center gap-3 px-4 pointer-events-auto">
+          {/* Mute Button */}
+          <button
+            onClick={onToggleMute}
+            className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center transition-all shadow-lg ${
+              isMuted
+                ? "bg-red-500/90 backdrop-blur-md"
+                : "bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20"
+            }`}
+          >
+            {isMuted ? (
+              <MicOff size={22} className="text-white" />
+            ) : (
+              <Mic size={22} className="text-white" />
+            )}
+          </button>
+
+          {/* Chat Button */}
+          <button
+            onClick={() => setIsChatOpen(!isChatOpen)}
+            className="w-12 h-12 flex-shrink-0 rounded-full bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20 flex items-center justify-center transition-all shadow-lg relative"
+          >
+            <MessageCircle size={20} className="text-white" />
+            {chatMessages.length > 0 && !isChatOpen && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full text-[9px] font-bold flex items-center justify-center text-black">
+                {chatMessages.filter((m) => !m.system && !m.self).length}
+              </span>
+            )}
+          </button>
+
+          {/* End Call Button */}
+          <button
+            onClick={handleEnd}
+            className="w-12 h-12 flex-shrink-0 rounded-full bg-red-500 hover:bg-red-600 flex items-center justify-center transition-all shadow-lg"
+          >
+            <Power size={22} className="text-white" />
+          </button>
+
+          {/* Video Toggle Button */}
+          <button
+            onClick={onToggleVideo}
+            className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center transition-all shadow-lg ${
+              isVideoOff
+                ? "bg-red-500/90 backdrop-blur-md"
+                : "bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20"
+            }`}
+          >
+            {isVideoOff ? (
+              <VideoOff size={20} className="text-white" />
+            ) : (
+              <VideoIcon size={20} className="text-white" />
+            )}
+          </button>
+
+          {/* Next/Start Button */}
+          {status === "matched" ? (
+            <button
+              onClick={handleNext}
+              className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-white transition-all shadow-lg flex items-center justify-center"
+            >
+              <RotateCcw size={20} />
+            </button>
+          ) : (
+            <button
+              onClick={handleStart}
+              disabled={status === "searching"}
+              className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 text-white transition-all shadow-lg flex items-center justify-center disabled:opacity-60"
+            >
+              <RotateCcw size={20} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Chat Overlay */}
+      {isChatOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm "
+          onClick={() => setIsChatOpen(false)}
+        >
+          <div
+            className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-900 to-slate-800 rounded-t-3xl border-t border-emerald-500/20 shadow-2xl max-h-[70vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-4 border-b border-white/10">
+              <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <MessageCircle size={20} className="text-emerald-400" />
+                Chat
+              </h3>
+              <button
+                onClick={() => setIsChatOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition"
+              >
+                <X size={18} className="text-white" />
+              </button>
+            </div>
+
+            {/* Chat Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3">
+              {chatMessages.length === 0 ||
+                (chatMessages[chatMessages.length - 1].system && (
+                  <div className="text-center text-sm text-white/70 italic select-none">
+                    Connect to start chatting!
+                  </div>
+                ))}
+              {chatMessages.length > 0 &&
+                chatMessages.map((msg) => {
+                  // if (msg.system) {
+                  //   return (
+                  //     <div
+                  //       key={msg.id}
+                  //       className="text-center text-xs text-white/70 italic select-none"
+                  //     >
+                  //       {msg.text}
+                  //     </div>
+                  //   );
+                  // }
+
+                  if (msg.system) return null;
                   return (
                     <div
                       key={msg.id}
@@ -1163,9 +1258,9 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                       }`}
                     >
                       <div
-                        className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm font-medium ${
+                        className={`max-w-[80%] px-4 py-2.5 rounded-md text-sm font-medium ${
                           msg.self
-                            ? "bg-gradient-to-r from-emerald-500 to-amber-500 text-white"
+                            ? " bg-emerald-800  text-white"
                             : "bg-white/10 text-white/90"
                         }`}
                       >
@@ -1174,16 +1269,21 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                     </div>
                   );
                 })}
-                <div ref={messageEndRef} />
-              </div>
+              <div ref={messageEndRef} />
+            </div>
 
-              <form onSubmit={sendMessage} className="mt-4 flex gap-3">
+            {/* Chat Input */}
+            <form
+              onSubmit={sendMessage}
+              className="p-4 border-t border-white/10 bg-black/20"
+            >
+              <div className="flex gap-2 mb-18">
                 <input
                   type="text"
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder={
-                    chatDisabled ? "Not connected" : "Send a message..."
+                    chatDisabled ? "Not connected" : "Type a message..."
                   }
                   disabled={chatDisabled}
                   className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-emerald-400 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1191,76 +1291,144 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 <button
                   type="submit"
                   disabled={chatDisabled || !inputMessage.trim()}
-                  className="p-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
+                  className="p-3 bg-emerald-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
                 >
                   <Send size={18} className="text-white" />
                 </button>
-              </form>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop Chat Sidebar - Now moved to right side */}
+      <div className="hidden md:block">
+        {/* Chat is in sidebar - see above */}
+      </div>
+
+      {/* Hidden old desktop panel - replaced by new layout */}
+      <div className="hidden">
+        {/* Chat */}
+        <div className="w-full">
+          <div className="bg-white/5 backdrop-blur-xl rounded-2xl p-5 border border-white/10 shadow-xl">
+            <div className="h-64 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-white/20">
+              {chatMessages.map((msg) => {
+                // if (msg.system) {
+                //   return (
+                //     <div
+                //       key={msg.id}
+                //       className="text-center text-xs text-white/70 italic select-none"
+                //     >
+                //       {msg.text}
+                //     </div>
+                //   );
+                // }
+                if (msg.system) return null;
+                return (
+                  <div
+                    key={msg.id}
+                    className={`flex ${
+                      msg.self ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm font-medium ${
+                        msg.self
+                          ? "bg-gradient-to-r from-emerald-500 to-amber-500 text-white"
+                          : "bg-white/10 text-white/90"
+                      }`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                );
+              })}
+              <div ref={messageEndRef} />
             </div>
+
+            <form onSubmit={sendMessage} className="mt-4 flex gap-3">
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder={
+                  chatDisabled ? "Not connected" : "Send a message..."
+                }
+                disabled={chatDisabled}
+                className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-emerald-400 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <button
+                type="submit"
+                disabled={chatDisabled || !inputMessage.trim()}
+                className="p-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
+              >
+                <Send size={18} className="text-white" />
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Right panel */}
+        <div className="p-4 space-y-6">
+          {/* Action Buttons */}
+          <div className="flex justify-center gap-4">
+            <button
+              onClick={handleEnd}
+              className="flex items-center gap-2 px-8 py-3 bg-red-500/20 border border-red-500/40 text-red-400 rounded-full hover:bg-red-500/30 transition-all shadow-lg font-medium"
+            >
+              <Power size={20} /> End
+            </button>
+
+            {status === "matched" ? (
+              <button
+                onClick={handleNext}
+                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-white rounded-full transition-all shadow-lg font-medium"
+              >
+                <RotateCcw size={20} /> Next
+              </button>
+            ) : (
+              <button
+                onClick={handleStart}
+                disabled={status === "searching"}
+                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 text-white rounded-full transition-all shadow-lg font-medium disabled:opacity-60"
+              >
+                <RotateCcw size={20} />
+                {status === "searching" ? "Searching..." : "Start"}
+              </button>
+            )}
           </div>
 
-          {/* Right panel */}
-          <div className="p-4 space-y-6">
-            {/* Action Buttons */}
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={handleEnd}
-                className="flex items-center gap-2 px-8 py-3 bg-red-500/20 border border-red-500/40 text-red-400 rounded-full hover:bg-red-500/30 transition-all shadow-lg font-medium"
-              >
-                <Power size={20} /> End
-              </button>
-
-              {status === "matched" ? (
-                <button
-                  onClick={handleNext}
-                  className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-white rounded-full transition-all shadow-lg font-medium"
-                >
-                  <RotateCcw size={20} /> Next
-                </button>
+          {/* Controls */}
+          <div className="flex justify-center items-center gap-6">
+            <button
+              onClick={onToggleMute}
+              className={`p-5 rounded-full transition-all shadow-lg backdrop-blur-md ${
+                isMuted
+                  ? "bg-red-500/80"
+                  : "bg-white/10 border border-emerald-500/30 hover:bg-white/20"
+              }`}
+            >
+              {isMuted ? (
+                <MicOff size={24} className="text-white" />
               ) : (
-                <button
-                  onClick={handleStart}
-                  disabled={status === "searching"}
-                  className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 text-white rounded-full transition-all shadow-lg font-medium disabled:opacity-60"
-                >
-                  <RotateCcw size={20} />
-                  {status === "searching" ? "Searching..." : "Start"}
-                </button>
+                <Mic size={24} className="text-white" />
               )}
-            </div>
+            </button>
 
-            {/* Controls */}
-            <div className="flex justify-center items-center gap-6">
-              <button
-                onClick={onToggleMute}
-                className={`p-5 rounded-full transition-all shadow-lg backdrop-blur-md ${
-                  isMuted
-                    ? "bg-red-500/80"
-                    : "bg-white/10 border border-emerald-500/30 hover:bg-white/20"
-                }`}
-              >
-                {isMuted ? (
-                  <MicOff size={24} className="text-white" />
-                ) : (
-                  <Mic size={24} className="text-white" />
-                )}
-              </button>
-
-              <button
-                onClick={onToggleVideo}
-                className={`p-5 rounded-full transition-all shadow-lg backdrop-blur-md ${
-                  isVideoOff
-                    ? "bg-red-500/80"
-                    : "bg-white/10 border border-emerald-500/30 hover:bg-white/20"
-                }`}
-              >
-                {isVideoOff ? (
-                  <VideoOff size={24} className="text-white" />
-                ) : (
-                  <VideoIcon size={24} className="text-white" />
-                )}
-              </button>
-            </div>
+            <button
+              onClick={onToggleVideo}
+              className={`p-5 rounded-full transition-all shadow-lg backdrop-blur-md ${
+                isVideoOff
+                  ? "bg-red-500/80"
+                  : "bg-white/10 border border-emerald-500/30 hover:bg-white/20"
+              }`}
+            >
+              {isVideoOff ? (
+                <VideoOff size={24} className="text-white" />
+              ) : (
+                <VideoIcon size={24} className="text-white" />
+              )}
+            </button>
           </div>
         </div>
       </div>
