@@ -16,6 +16,7 @@ type UseWebRTCResult = {
   toggleVideo: (on?: boolean) => void;
   cleanupRemote: () => void;
   endCall: () => void;
+  replaceVideoTrack: (track: MediaStreamTrack) => Promise<void>;
   connected: boolean;
 };
 
@@ -470,6 +471,34 @@ export function useWebRTC({
     console.log("[WebRTC] ✅ Local stream preserved:", !!localStreamRef.current);
   }, [localStreamRef]);
 
+  const replaceVideoTrack = useCallback(
+  async (newTrack: MediaStreamTrack) => {
+    const pc = pcRef.current;
+    if (!pc) {
+      console.warn("[WebRTC] replaceVideoTrack: no PeerConnection");
+      return;
+    }
+
+    const sender = pc
+      .getSenders()
+      .find((s) => s.track && s.track.kind === "video");
+
+    if (!sender) {
+      console.warn("[WebRTC] replaceVideoTrack: no video sender found");
+      return;
+    }
+
+    try {
+      await sender.replaceTrack(newTrack);
+      console.log("[WebRTC] 🎥 Outgoing video track replaced");
+    } catch (err) {
+      console.error("[WebRTC] replaceTrack failed:", err);
+    }
+  },
+  []
+);
+
+
   const toggleAudio = useCallback((on?: boolean) => {
     const s = localStreamRef.current;
     if (!s) return;
@@ -518,6 +547,7 @@ export function useWebRTC({
     toggleAudio, 
     toggleVideo, 
     cleanupRemote,
+    replaceVideoTrack,
     endCall,
     connected 
   };

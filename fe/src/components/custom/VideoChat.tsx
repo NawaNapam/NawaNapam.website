@@ -16,6 +16,7 @@ import {
   Users,
   User,
   MessageCircle,
+  Camera,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -40,6 +41,17 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
   const [userInteracted, setUserInteracted] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isStreamSwapped, setIsStreamSwapped] = useState(false); // Track if streams are swapped
+  const [cameraFacing, setCameraFacing] = useState<"user" | "environment">(
+    "user"
+  );
+  const [selfPos, setSelfPos] = useState({ x: 0, y: 0 });
+  const dragRef = useRef<{
+    startX: number;
+    startY: number;
+    originX: number;
+    originY: number;
+    dragging: boolean;
+  } | null>(null);
 
   // refs
   const selfVideoMobileRef = useRef<HTMLVideoElement | null>(null);
@@ -129,6 +141,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
     toggleVideo,
     attachLocal,
     attachRemote,
+    replaceVideoTrack,
     connected,
   } = useWebRTC({
     socket,
@@ -460,6 +473,64 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
     setIsStreamSwapped((prev) => !prev);
   };
 
+  const switchCamera = async () => {
+    // 🚫 Desktop guard
+    if (!/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) return;
+
+    try {
+      const currentStream = localStreamRef.current;
+      if (!currentStream) return;
+
+      // 1️⃣ Stop only the video track
+      currentStream.getVideoTracks().forEach((t) => t.stop());
+
+      const nextFacing = cameraFacing === "user" ? "environment" : "user";
+
+      // 2️⃣ Request new video stream
+      const newStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: nextFacing,
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+          frameRate: { ideal: 30 },
+        },
+        audio: false, // 🔥 keep audio from old stream
+      });
+
+      const newVideoTrack = newStream.getVideoTracks()[0];
+
+      await replaceVideoTrack(newVideoTrack);
+
+      // 3️⃣ Replace video track in local stream
+      const updatedStream = new MediaStream([
+        newVideoTrack,
+        ...currentStream.getAudioTracks(),
+      ]);
+
+      localStreamRef.current = updatedStream;
+      setCameraFacing(nextFacing);
+
+      // 4️⃣ Update video element
+      const el = getSelfEl();
+      if (el) {
+        el.muted = true;
+        el.setAttribute("playsinline", "");
+        el.srcObject = updatedStream;
+        await el.play().catch(() => {});
+      }
+
+      // 5️⃣ Notify WebRTC hook (important)
+      if (attachLocal && el) {
+        attachLocal(el);
+      }
+
+      console.log("[Camera] 🔄 Switched to:", nextFacing);
+    } catch (err) {
+      console.error("[Camera] Switch failed:", err);
+      toast.error("Unable to switch camera");
+    }
+  };
+
   useEffect(() => {
     if (!userId || hasStartedRef.current) return;
 
@@ -604,6 +675,44 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
   const showConnecting = status === "matched" && !connected;
   const isFullyConnected = status === "matched" && connected;
 
+  const onSelfPointerDown = (e: React.PointerEvent) => {
+    // Only allow dragging when self video is in PiP mode (not fullscreen)
+    if (isStreamSwapped) return;
+
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: selfPos.x,
+      originY: selfPos.y,
+      dragging: true,
+    };
+  };
+
+  const onSelfPointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current?.dragging) return;
+
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
+
+    setSelfPos({
+      x: dragRef.current.originX + dx,
+      y: dragRef.current.originY + dy,
+    });
+  };
+
+  const onSelfPointerUp = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
+
+    dragRef.current.dragging = false;
+    dragRef.current = null;
+
+    try {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch {}
+  };
+
   return (
     <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-emerald-950 via-slate-950 to-amber-950 flex flex-col font-sans">
       {/* Header */}
@@ -644,7 +753,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
           >
             {/* Remote video - positioned based on swap state */}
             <div
-              onClick={handleSwapStreams}
+              onDoubleClick={handleSwapStreams}
               className="cursor-pointer"
               style={{
                 position: "absolute",
@@ -696,7 +805,11 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
 
             {/* Local video - positioned based on swap state */}
             <div
-              onClick={handleSwapStreams}
+              onPointerDown={onSelfPointerDown}
+              onPointerMove={onSelfPointerMove}
+              onPointerUp={onSelfPointerUp}
+              onPointerCancel={onSelfPointerUp}
+              onDoubleClick={handleSwapStreams}
               className="cursor-pointer"
               style={{
                 position: "absolute",
@@ -709,8 +822,8 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                       zIndex: 1,
                     }
                   : {
-                      top: "80px",
-                      right: "12px",
+                      top: `${80 + selfPos.y}px`,
+                      right: `${12 - selfPos.x}px`,
                       width: "100px",
                       height: "140px",
                       zIndex: 50,
@@ -922,7 +1035,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
 
               {/* Remote video - main or PiP based on swap */}
               <div
-                onClick={handleSwapStreams}
+                onDoubleClick={handleSwapStreams}
                 className="cursor-pointer"
                 style={{
                   position: "absolute",
@@ -969,7 +1082,11 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
 
               {/* Local video - main or PiP based on swap */}
               <div
-                onClick={handleSwapStreams}
+                onPointerDown={onSelfPointerDown}
+                onPointerMove={onSelfPointerMove}
+                onPointerUp={onSelfPointerUp}
+                onPointerCancel={onSelfPointerUp}
+                onDoubleClick={handleSwapStreams}
                 className="cursor-pointer hover:border-emerald-400/60 transition-all"
                 style={{
                   position: "absolute",
@@ -982,8 +1099,8 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                         zIndex: 1,
                       }
                     : {
-                        bottom: "16px",
-                        right: "16px",
+                        bottom: `${16 - selfPos.y}px`,
+                        right: `${16 - selfPos.x}px`,
                         width: "192px",
                         height: "144px",
                         zIndex: 30,
@@ -1258,6 +1375,14 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
             ) : (
               <VideoIcon size={20} className="text-white" />
             )}
+          </button>
+
+          {/* Switch Camera */}
+          <button
+            onClick={switchCamera}
+            className="w-12 h-12 flex-shrink-0 rounded-full bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20 flex items-center justify-center transition-all shadow-lg"
+          >
+            <Camera size={20} className="text-white" />
           </button>
 
           {/* Next/Start Button */}

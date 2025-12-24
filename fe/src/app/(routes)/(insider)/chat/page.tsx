@@ -6,20 +6,17 @@ const VALID_PREFS = new Set(["random", "male", "female"]);
 
 export type GenderFilter = "random" | "male" | "female";
 
-export default async function Chat({
+export default function Chat({
   searchParams,
 }: {
-  searchParams: Promise<{ pref?: string }>;
+  searchParams: { pref?: string };
 }) {
-  const params = await searchParams;
-  const normalized = (params.pref ?? "").toLowerCase();
+  const normalized = (searchParams.pref ?? "").toLowerCase();
 
   if (!normalized || !VALID_PREFS.has(normalized)) {
-    // default or bounce — pick one:
-    // return redirect('/dashboard');
     return (
       <Private>
-        <VideoChatPage gender={"random"} />
+        <VideoChatPage gender="random" />
       </Private>
     );
   }

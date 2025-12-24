@@ -25,7 +25,7 @@ function registerConnectionHandlers(io) {
         // --- auth/heartbeat/match ---
         socket.on("auth", (payload) => (0, authHandler_1.handleAuth)(socket, payload));
         socket.on("heartbeat", (payload) => (0, heartbeatHandler_1.handleHeartbeat)(socket, payload));
-        socket.on("match:request", () => (0, matchHandler_1.handleMatchRequest)(io, socket));
+        socket.on("match:request", (payload) => (0, matchHandler_1.handleMatchRequest)(io, socket, payload));
         // --- chat handlers ---
         // NOTE: room:join is called programmatically in matchHandler
         // But we keep this listener for explicit client joins (e.g., WebRTC rejoins)
@@ -54,7 +54,7 @@ function registerConnectionHandlers(io) {
                     socket.to(roomId).emit("rtc:peer-left");
                     socket.to(roomId).emit("chat:system", {
                         text: "User disconnected",
-                        roomId
+                        roomId,
                     });
                     // Mark the room as ended
                     yield redisClient_1.redis.hset(`user:${userId}`, "currentRoom", "");
@@ -89,7 +89,7 @@ function registerConnectionHandlers(io) {
                         socket1.emit("match:found", {
                             peerId: u2,
                             peerUsername: u2Name,
-                            roomId
+                            roomId,
                         });
                         yield (0, chatHandlers_1.handleChatRoomJoin)(io, socket1, { roomId });
                     }
@@ -100,14 +100,18 @@ function registerConnectionHandlers(io) {
                         socket2.emit("match:found", {
                             peerId: u1,
                             peerUsername: u1Name,
-                            roomId
+                            roomId,
                         });
                         yield (0, chatHandlers_1.handleChatRoomJoin)(io, socket2, { roomId });
                     }
                 }
             }
             catch (err) {
-                console.error("[pubsub] Error handling matched event:", err, { roomId, u1, u2 });
+                console.error("[pubsub] Error handling matched event:", err, {
+                    roomId,
+                    u1,
+                    u2,
+                });
             }
         }
         else if (parts[0] === "ended") {

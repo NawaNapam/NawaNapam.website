@@ -13,25 +13,26 @@ exports.handleAuth = handleAuth;
 const redisClient_1 = require("../utils/redis/redisClient");
 function handleAuth(socket, payload) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { userId, username } = payload || {};
+        const { userId, username, gender } = payload || {};
         if (!userId) {
             socket.emit("auth:error", "userId required");
             return;
         }
         socket.data.userId = userId;
         socket.data.username = username !== null && username !== void 0 ? username : "";
+        socket.data.gender = gender !== null && gender !== void 0 ? gender : ""; // Store user's actual gender
         const now = Date.now();
         yield redisClient_1.redis.hset(`user:${userId}`, {
             status: "available",
             socketId: socket.id,
             lastSeen: String(now),
             username: username !== null && username !== void 0 ? username : "",
+            gender: gender !== null && gender !== void 0 ? gender : "", // Persist gender in Redis
+            currentRoom: ""
         });
-        // lobal availability pools
-        yield redisClient_1.redis.sadd("available", userId);
-        yield redisClient_1.redis.zadd("available_by_time", now, userId);
         // presence TTL
         yield redisClient_1.redis.expire(`user:${userId}`, 30);
         socket.emit("auth:ok");
+        console.log(`[auth] User ${userId} authenticated with gender: ${gender}`);
     });
 }

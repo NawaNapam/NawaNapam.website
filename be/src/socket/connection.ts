@@ -10,7 +10,7 @@ import { registerRtcHandlers } from "./rtchandler";
 type RoomMeta = {
   ended?: boolean;
 };
-const roomState = new Map<string, RoomMeta>(); 
+const roomState = new Map<string, RoomMeta>();
 
 export function registerConnectionHandlers(io: Server) {
   io.on("connection", (socket: Socket) => {
@@ -21,16 +21,21 @@ export function registerConnectionHandlers(io: Server) {
     // --- auth/heartbeat/match ---
     socket.on("auth", (payload) => handleAuth(socket, payload));
     socket.on("heartbeat", (payload) => handleHeartbeat(socket, payload));
-    socket.on("match:request", () => handleMatchRequest(io, socket));
+    socket.on("match:request", (payload) =>
+      handleMatchRequest(io, socket, payload)
+    );
 
     // --- chat handlers ---
     // NOTE: room:join is called programmatically in matchHandler
     // But we keep this listener for explicit client joins (e.g., WebRTC rejoins)
     socket.on("room:join", (payload) => {
-      console.log(`[connection] Explicit room:join from ${socket.data.userId}:`, payload);
+      console.log(
+        `[connection] Explicit room:join from ${socket.data.userId}:`,
+        payload
+      );
       handleChatRoomJoin(io, socket, payload);
     });
-    
+
     socket.on("chat:send", (payload) => handleChatSend(io, socket, payload));
 
     // --- end room (finalizes + emits "Chat ended") ---
@@ -40,26 +45,28 @@ export function registerConnectionHandlers(io: Server) {
     socket.on("disconnect", async () => {
       const userId = socket.data.userId;
       if (!userId) return;
-      
+
       console.log(`❌ User ${userId} disconnecting, socket: ${socket.id}`);
-      
+
       try {
         await redis.hset(`user:${userId}`, "status", "offline");
-        
+
         // Clean up availability pools
         await redis.srem("available", userId);
         await redis.zrem("available_by_time", userId);
-        
+
         // Clean up any active rooms
         const roomId = socket.data.currentRoomId;
         if (roomId) {
-          console.log(`[disconnect] Cleaning up room ${roomId} for user ${userId}`);
+          console.log(
+            `[disconnect] Cleaning up room ${roomId} for user ${userId}`
+          );
           socket.to(roomId).emit("rtc:peer-left");
-          socket.to(roomId).emit("chat:system", { 
-            text: "User disconnected", 
-            roomId 
+          socket.to(roomId).emit("chat:system", {
+            text: "User disconnected",
+            roomId,
           });
-          
+
           // Mark the room as ended
           await redis.hset(`user:${userId}`, "currentRoom", "");
         }
@@ -88,38 +95,42 @@ export function registerConnectionHandlers(io: Server) {
 
         const u1Name = u1Hash.username || u1Hash.name || u1;
         const u2Name = u2Hash.username || u2Hash.name || u2;
-        
-        console.log(`[pubsub] Match notification: ${u1} <-> ${u2} in room ${roomId}`);
+
+        console.log(
+          `[pubsub] Match notification: ${u1} <-> ${u2} in room ${roomId}`
+        );
 
         // Only emit if we haven't already (this is for cross-server cases)
         if (u1Hash.socketId) {
           const socket1 = io.sockets.sockets.get(u1Hash.socketId);
           if (socket1 && !socket1.data.currentRoomId) {
-            socket1.emit("match:found", { 
-              peerId: u2, 
-              peerUsername: u2Name, 
-              roomId 
+            socket1.emit("match:found", {
+              peerId: u2,
+              peerUsername: u2Name,
+              roomId,
             });
             await handleChatRoomJoin(io, socket1, { roomId });
           }
         }
-        
+
         if (u2Hash.socketId) {
           const socket2 = io.sockets.sockets.get(u2Hash.socketId);
           if (socket2 && !socket2.data.currentRoomId) {
-            socket2.emit("match:found", { 
-              peerId: u1, 
-              peerUsername: u1Name, 
-              roomId 
+            socket2.emit("match:found", {
+              peerId: u1,
+              peerUsername: u1Name,
+              roomId,
             });
             await handleChatRoomJoin(io, socket2, { roomId });
           }
         }
-
       } catch (err) {
-        console.error("[pubsub] Error handling matched event:", err, { roomId, u1, u2 });
+        console.error("[pubsub] Error handling matched event:", err, {
+          roomId,
+          u1,
+          u2,
+        });
       }
-
     } else if (parts[0] === "ended") {
       const [, roomId] = parts;
       console.log("[pubsub] Room ended notification:", roomId);

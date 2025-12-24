@@ -6,14 +6,13 @@ import { handleChatRoomJoin } from "./chatHandlers";
 const STALE_MS = Number(process.env.STALE_MS || 30_000);
 const MATCH_TIMEOUT_MS = 15_000; // 15 seconds timeout for filtered searches
 
-export async function handleMatchRequest(io: Server, socket: Socket) {
+export async function handleMatchRequest(io: Server, socket: Socket, payload: { pref?: string }) {
   const userId = socket.data.userId as string;
   const userGender = socket.data.gender as string; // User's actual gender
   
   if (!userId) return socket.emit("match:error", "not-authenticated");
 
-  const payload = socket.handshake.query;
-  const genderPreference = (payload.pref as string) || "random"; // "random", "male", "female"
+  const genderPreference = (payload?.pref || "random").toLowerCase();
 
   const now = Date.now();
 
@@ -30,6 +29,7 @@ export async function handleMatchRequest(io: Server, socket: Socket) {
       "status", "available",
       "lastSeen", String(now),
       "currentRoom", "",
+      "gender", userGender,
       "genderPreference", genderPreference // Store what they're looking for
     );
 

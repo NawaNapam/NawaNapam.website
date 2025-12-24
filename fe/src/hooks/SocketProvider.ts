@@ -98,7 +98,6 @@ export function initSocket(url = SIGNALING, genderPref?: string) {
   socket = io(url, {
     transports: ["websocket"],
     autoConnect: true,
-    query: { pref: normPref(genderPref) },
   });
 
   socket.on("connect_error", (err) =>
@@ -168,7 +167,7 @@ export function startMatch(genderPref?: string) {
 
   lastMatchRequestAt = now;
   log("match", "Emitting → match:request", { pref });
-  socket.emit("match:request", pref);
+  socket.emit("match:request", { pref });;
   return true;
 }
 
@@ -391,7 +390,7 @@ export function useSignaling({
       retryTimerRef.current = setTimeout(() => {
         retryTimerRef.current = null;
         if (statusRef.current !== "matched") {
-          const ok = startMatch();
+          const ok = startMatch(genderPreference);
           log("match:queued", "Re-emitted match request → ok?", ok);
           if (!ok) socketRef.current?.emit("match:request");
         }
@@ -471,7 +470,7 @@ export function useSignaling({
     }
     lastMatchedRoomId = null;
     processedMatchRef.current = null;
-    const ok = startMatch();
+    const ok = startMatch(genderPreference);
     log("start", "Match request emitted, ok?", ok);
     if (!ok) socketRef.current?.emit("match:request");
     dispatch({ type: "SET_STATUS", payload: "searching" });

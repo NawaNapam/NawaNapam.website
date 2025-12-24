@@ -39,7 +39,7 @@ function makeClient(label) {
         port,
         username,
         password, enableReadyCheck: true, maxRetriesPerRequest: 3 }, (useTLS ? { tls: { servername: host } } : {}));
-    const client = new ioredis_1.default(opts);
+    const client = new ioredis_1.default();
     client.on("error", (e) => console.error(`[redis:${label}]`, e.message));
     return client;
 }
