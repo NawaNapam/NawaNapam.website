@@ -28,6 +28,13 @@ export const metadata: Metadata = {
   title: "NawaNapam ",
   description: "Instant, anonymous, global video chat rooted in culture.",
   manifest: "/manifest.json",
+  openGraph: {
+    title: "NawaNapam ",
+    description: "Instant, anonymous, global video chat rooted in culture.",
+    url: "https://nawanapam.com",
+    siteName: "NawaNapam",
+    type: "website",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
