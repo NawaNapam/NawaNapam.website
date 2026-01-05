@@ -1,10 +1,9 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 import { pageRateLimiter, getClientIdentifier } from "@/lib/rate-limit";
 
 export default withAuth(
-  async function middleware(req: NextRequest) {
+  async function middleware(req) {
     const token = req.nextauth.token;
     const isAuthPage =
       req.nextUrl.pathname.startsWith("/login") ||
