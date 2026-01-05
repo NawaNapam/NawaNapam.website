@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Header from "./Header";
 import { useRouter } from "next/navigation";
+import PulseLoader from "./Loader";
 
 type MatchPref = "RANDOM" | "MALE" | "FEMALE";
 
@@ -61,9 +62,8 @@ export default function Dashboard() {
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0a140a] via-[#0f1a0f] to-[#0a140a] flex items-center justify-center">
-        <div className="text-amber-300 text-lg font-medium animate-pulse">
-          Loading your dashboard...
-        </div>
+        <PulseLoader />
+        <span className="sr-only">Loading your dashboard...</span>
       </div>
     );
   }

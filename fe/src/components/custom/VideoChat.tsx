@@ -25,6 +25,7 @@ import { useGetUser } from "@/hooks/use-getuser";
 import { useRoomChat } from "@/hooks/useRoomChat";
 import { useSignaling, onAuthOk } from "@/hooks/SocketProvider";
 import { useWebRTC } from "@/hooks/useWebRTC";
+import "@/styles/ext.css";
 
 interface VideoChatPageProps {
   gender: string;
@@ -477,12 +478,12 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
 
   const handleSwapStreams = () => {
     console.log("[Action] 🔄 Swapping video streams");
-    
+
     // Debounce swap to prevent rapid toggling
     if (swapDebounceRef.current) {
       clearTimeout(swapDebounceRef.current);
     }
-    
+
     swapDebounceRef.current = setTimeout(() => {
       setIsStreamSwapped((prev) => !prev);
       swapDebounceRef.current = null;
@@ -691,58 +692,57 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
   const showConnecting = status === "matched" && !connected;
   const isFullyConnected = status === "matched" && connected;
 
-const DRAG_THRESHOLD = 6;
+  const DRAG_THRESHOLD = 6;
 
-const onSelfPointerDown = (e: React.PointerEvent) => {
-  e.preventDefault();
-  e.currentTarget.setPointerCapture(e.pointerId);
+  const onSelfPointerDown = (e: React.PointerEvent) => {
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
 
-  dragRef.current = {
-    startX: e.clientX,
-    startY: e.clientY,
-    originX: selfPos.x,
-    originY: selfPos.y,
-    dragging: false,
+    dragRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      originX: selfPos.x,
+      originY: selfPos.y,
+      dragging: false,
+    };
   };
-};
 
-const onSelfPointerMove = (e: React.PointerEvent) => {
-  if (!dragRef.current) return;
+  const onSelfPointerMove = (e: React.PointerEvent) => {
+    if (!dragRef.current) return;
 
-  const dx = e.clientX - dragRef.current.startX;
-  const dy = e.clientY - dragRef.current.startY;
+    const dx = e.clientX - dragRef.current.startX;
+    const dy = e.clientY - dragRef.current.startY;
 
-  if (!dragRef.current.dragging) {
-    const dist = Math.hypot(dx, dy);
-    if (dist > DRAG_THRESHOLD) {
-      dragRef.current.dragging = true;
+    if (!dragRef.current.dragging) {
+      const dist = Math.hypot(dx, dy);
+      if (dist > DRAG_THRESHOLD) {
+        dragRef.current.dragging = true;
+      }
     }
-  }
 
-  if (dragRef.current.dragging) {
-    setSelfPos({
-      x: dragRef.current.originX + dx,
-      y: dragRef.current.originY + dy,
-    });
-  }
-};
+    if (dragRef.current.dragging) {
+      setSelfPos({
+        x: dragRef.current.originX + dx,
+        y: dragRef.current.originY + dy,
+      });
+    }
+  };
 
-const onSelfPointerUp = (e: React.PointerEvent) => {
-  const wasDragging = dragRef.current?.dragging;
+  const onSelfPointerUp = (e: React.PointerEvent) => {
+    const wasDragging = dragRef.current?.dragging;
 
-  try {
-    e.currentTarget.releasePointerCapture(e.pointerId);
-  } catch {}
+    try {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    } catch {}
 
-  dragRef.current = null;
+    dragRef.current = null;
 
-  // ✅ TAP (not drag) → swap
-  if (!wasDragging) {
-    e.stopPropagation();
-    handleSwapStreams();
-  }
-};
-
+    // ✅ TAP (not drag) → swap
+    if (!wasDragging) {
+      e.stopPropagation();
+      handleSwapStreams();
+    }
+  };
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-emerald-950 via-slate-950 to-amber-950 flex flex-col font-sans">
@@ -923,7 +923,7 @@ const onSelfPointerUp = (e: React.PointerEvent) => {
                   className="absolute inset-0 bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4"
                   style={{ zIndex: 20, pointerEvents: "none" }}
                 >
-                  <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="loader"></div>
                   <p className="text-sm text-white/90 font-medium">
                     {showSearching
                       ? "Finding someone for you..."
@@ -947,7 +947,7 @@ const onSelfPointerUp = (e: React.PointerEvent) => {
                     borderRadius: "12px",
                   }}
                 >
-                  <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="loader"></div>
                   <p className="text-[9px] text-white/90 font-medium text-center px-1">
                     {showSearching ? "Finding..." : "Waiting..."}
                   </p>
@@ -1010,7 +1010,7 @@ const onSelfPointerUp = (e: React.PointerEvent) => {
               {(showSearching || (isFullyConnected && !remoteStreamReady)) &&
                 !isStreamSwapped && (
                   <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20">
-                    <div className="w-16 h-16 border-4 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="loader"></div>
                     <p className="text-sm text-white/90 font-medium">
                       {showSearching
                         ? "Finding someone for you..."
@@ -1034,7 +1034,7 @@ const onSelfPointerUp = (e: React.PointerEvent) => {
                       borderRadius: "12px",
                     }}
                   >
-                    <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="loader"></div>{" "}
                     <p className="text-xs text-white/90 font-medium text-center px-2">
                       {showSearching ? "Finding..." : "Waiting..."}
                     </p>
@@ -1344,7 +1344,7 @@ const onSelfPointerUp = (e: React.PointerEvent) => {
                   <button
                     type="submit"
                     disabled={chatDisabled || !inputMessage.trim()}
-                    className="p-2 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="p-2  bg-emerald-900 hover:from-emerald-600 hover:to-amber-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     <Send size={16} className="text-white" />
                   </button>
@@ -1677,4 +1677,3 @@ const onSelfPointerUp = (e: React.PointerEvent) => {
     </div>
   );
 }
-

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { X, Heart, ArrowUp } from "lucide-react";
+import { X, Heart, ArrowUp, Mail } from "lucide-react";
 
 const policies = {
   "Privacy Policy": [
@@ -95,6 +95,18 @@ export default function Footer() {
               <p className="text-xs text-amber-200/70">
                 Connecting souls with respect and warmth
               </p>
+              <a
+                href="mailto:support@nawanapam.com"
+                className="flex items-center justify-center md:justify-start gap-2 mt-4 text-sm text-amber-300 hover:text-amber-100 transition-all group"
+              >
+                <div className="p-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 group-hover:bg-amber-500/20 transition-all">
+                  <Mail
+                    size={14}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                </div>
+                <span className="font-medium">support@nawanapam.com</span>
+              </a>
             </div>
 
             {/* Policy Links */}
