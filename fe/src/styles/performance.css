@@ -1,0 +1,69 @@
+/* Performance optimizations */
+
+/* Optimize font rendering */
+@font-face {
+  font-display: swap;
+}
+
+/* Use CSS containment for better paint performance */
+.container {
+  contain: layout style paint;
+}
+
+/* Optimize animations with will-change */
+.animate-pulse,
+.animate-float,
+.transition-all {
+  will-change: transform, opacity;
+}
+
+/* Remove will-change after animation completes */
+.animate-pulse:not(:hover):not(:focus),
+.animate-float:not(:hover):not(:focus),
+.transition-all:not(:hover):not(:focus) {
+  will-change: auto;
+}
+
+/* Critical CSS for above-the-fold content */
+.hero-section {
+  content-visibility: auto;
+  contain-intrinsic-size: 100vh;
+}
+
+/* Optimize backdrop-blur for performance */
+.backdrop-blur-xl,
+.backdrop-blur-lg {
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* GPU acceleration for animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+/* Reduce layout shifts */
+img,
+video {
+  height: auto;
+  aspect-ratio: attr(width) / attr(height);
+}
+
+/* Optimize scrolling */
+* {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent font flash */
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

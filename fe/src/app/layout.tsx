@@ -4,17 +4,22 @@ import { Cinzel_Decorative } from "next/font/google"; // ← ADD THIS
 import "./globals.css";
 import Provider from "./Provider";
 import { Toaster } from "@/components/ui/sonner";
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from "@vercel/analytics/react";
+import { WebVitals } from "@/components/custom/WebVitals";
 
 // Your existing fonts
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+  display: "swap",
+  preload: true,
 });
 
 // ADD THIS: Cinzel Decorative (perfect for "NawaNapam")
@@ -23,6 +28,7 @@ const cinzelDecorative = Cinzel_Decorative({
   subsets: ["latin"],
   variable: "--font-cinzel", // CSS variable to use anywhere
   display: "swap",
+  preload: true,
 });
 
 export const metadata: Metadata = {
@@ -63,9 +69,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" data-scroll-behavior="smooth">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link rel="dns-prefetch" href="https://vercel.live" />
+        <link rel="dns-prefetch" href="https://va.vercel-scripts.com" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${cinzelDecorative.variable} antialiased font-sans`}
       >
+        <WebVitals />
         <Provider>
           {children}
           <Analytics />
