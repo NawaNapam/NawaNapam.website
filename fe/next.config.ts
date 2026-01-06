@@ -33,6 +33,8 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["@prisma/client"],
   },
+  // External packages that should not be bundled
+  serverExternalPackages: ["jsdom", "canvas", "isomorphic-dompurify"],
   // Optimize performance
   compress: true,
   poweredByHeader: false,

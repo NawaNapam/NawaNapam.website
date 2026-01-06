@@ -1,11 +1,24 @@
-import DOMPurify from "isomorphic-dompurify";
 import { z } from "zod";
 
 /**
- * Sanitize HTML to prevent XSS attacks
+ * Lazy load DOMPurify to avoid loading jsdom on server startup
  */
-export function sanitizeHtml(dirty: string): string {
-  return DOMPurify.sanitize(dirty, {
+let DOMPurify: typeof import("isomorphic-dompurify").default | null = null;
+
+async function getDOMPurify() {
+  if (!DOMPurify) {
+    DOMPurify = (await import("isomorphic-dompurify")).default;
+  }
+  return DOMPurify;
+}
+
+/**
+ * Sanitize HTML to prevent XSS attacks
+ * Note: This is async to support lazy loading of DOMPurify
+ */
+export async function sanitizeHtml(dirty: string): Promise<string> {
+  const purify = await getDOMPurify();
+  return purify.sanitize(dirty, {
     ALLOWED_TAGS: ["b", "i", "em", "strong", "a", "p", "br"],
     ALLOWED_ATTR: ["href", "title", "target"],
   });
