@@ -36,13 +36,30 @@ export function useUpdateUser() {
     setError(null);
 
     try {
-      const response = await fetch("/api/updateuser", {
+      let response = await fetch("/api/updateuser", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
+
+      // Fallback to POST if PUT is not allowed (405 error)
+      if (response.status === 405) {
+        response = await fetch("/api/updateuser", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+      }
+
+      // Handle non-JSON responses (like 500 error pages)
+      const contentType = response.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        throw new Error("Server error - please try again later");
+      }
 
       const result = await response.json();
 

@@ -44,7 +44,7 @@ export default function CompleteProfile() {
 
     setLoading(true);
     try {
-      const res = await fetch("/api/updateuser", {
+      let res = await fetch("/api/updateuser", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -52,13 +52,34 @@ export default function CompleteProfile() {
           gender,
         }),
       });
+
+      // Fallback to POST if PUT is not allowed (405 error)
+      if (res.status === 405) {
+        res = await fetch("/api/updateuser", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            phoneNumber: `${countryCode}${phoneNumber}`,
+            gender,
+          }),
+        });
+      }
+
+      // Handle non-JSON responses
+      const contentType = res.headers.get("content-type");
+      const isJson = contentType?.includes("application/json");
+
       if (res.ok) {
         toast.success("Profile updated successfully!");
         router.push("/dashboard");
       } else {
-        toast.error("Failed to update profile. Please try again.");
+        const errorData = isJson ? await res.json() : null;
+        toast.error(
+          errorData?.error || "Failed to update profile. Please try again."
+        );
       }
-    } catch {
+    } catch (error) {
+      console.error("Update error:", error);
       toast.error("An error occurred. Please try again.");
     } finally {
       setLoading(false);

@@ -92,11 +92,26 @@ export default function ProfileSettingsPage() {
 
     setSavingField(field);
     try {
-      const res = await fetch("/api/updateuser", {
+      let res = await fetch("/api/updateuser", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ [field]: value }),
       });
+
+      // Fallback to POST if PUT is not allowed (405 error)
+      if (res.status === 405) {
+        res = await fetch("/api/updateuser", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ [field]: value }),
+        });
+      }
+
+      // Handle non-JSON responses (like 500 error pages)
+      const contentType = res.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        throw new Error("Server error - please try again later");
+      }
 
       const data = await res.json();
       if (!res.ok) {
