@@ -6,7 +6,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 
-export async function PUT(req: Request) {
+async function handleUpdateUser(req: Request) {
   try {
     // Apply rate limiting
     const identifier = getClientIdentifier(req);
@@ -14,15 +14,18 @@ export async function PUT(req: Request) {
       await apiRateLimiter.limit(identifier);
 
     if (!success) {
-      return new NextResponse("Too Many Requests", {
-        status: 429,
-        headers: {
-          "X-RateLimit-Limit": limit.toString(),
-          "X-RateLimit-Remaining": remaining.toString(),
-          "X-RateLimit-Reset": reset.toString(),
-          "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString(),
-        },
-      });
+      return NextResponse.json(
+        { error: "Too Many Requests" },
+        {
+          status: 429,
+          headers: {
+            "X-RateLimit-Limit": limit.toString(),
+            "X-RateLimit-Remaining": remaining.toString(),
+            "X-RateLimit-Reset": reset.toString(),
+            "Retry-After": Math.ceil((reset - Date.now()) / 1000).toString(),
+          },
+        }
+      );
     }
 
     const session = await getServerSession(authOptions);
@@ -163,4 +166,11 @@ export async function PUT(req: Request) {
       { status: 500 }
     );
   }
+}
+export async function PUT(req: Request) {
+  return handleUpdateUser(req);
+}
+
+export async function POST(req: Request) {
+  return handleUpdateUser(req);
 }
