@@ -33,25 +33,11 @@ const nextConfig: NextConfig = {
   experimental: {
     optimizePackageImports: ["@prisma/client"],
   },
-  // Output file tracing for Prisma
-  outputFileTracingIncludes: {
-    "/api/**/*": ["./node_modules/.prisma/client/**/*"],
-  },
   // External packages that should not be bundled
   serverExternalPackages: ["jsdom", "canvas", "isomorphic-dompurify"],
   // Optimize performance
   compress: true,
   poweredByHeader: false,
-
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals.push({
-        "@prisma/client": "commonjs @prisma/client",
-      });
-    }
-    return config;
-  },
-
   // Security headers
   async headers() {
     return [
