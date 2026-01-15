@@ -30,7 +30,7 @@ export async function handleMatchRequest(io: Server, socket: Socket, payload: { 
       "lastSeen", String(now),
       "currentRoom", "",
       "gender", userGender,
-      "genderPreference", genderPreference // Store what they're looking for
+      "prefGender", genderPreference
     );
 
     // Add to appropriate availability pool based on THEIR gender (not preference)
@@ -112,7 +112,7 @@ export async function handleMatchRequest(io: Server, socket: Socket, payload: { 
 
       // Handle no match scenarios
       const errCode = String(parsed.err || "").toUpperCase();
-      if (errCode === "NO_PEER" || errCode === "STALE_PEER" || errCode === "NOT_AVAILABLE") {
+      if (errCode === "NO_PEER" || errCode === "STALE_PEER" || errCode === "NOT_AVAILABLE" || errCode === "PREF_MISMATCH") {
         await redis.hset(`user:${userId}`, "status", "available", "lastSeen", String(Date.now()));
         socket.emit("match:queued", { filter: genderPreference });
         console.log("[match] 🕒 Queued", { userId, filter: genderPreference, reason: errCode });
