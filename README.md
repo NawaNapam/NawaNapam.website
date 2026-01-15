@@ -12,15 +12,18 @@
 
 ## Features
 
-- Real-time 1-on-1 video and text chat (WebRTC, Socket.IO)
-- Interest-based matching (gender, tags, preferences)
-- Secure, encrypted, and private
-- Fully responsive (mobile, tablet, desktop)
-- Elegant, glassmorphic UI with golden gradients
-- Mute/camera controls, "Next" and "End Chat" actions
-- Scalable backend with Redis and Lua scripts
-- Modern authentication (NextAuth.js, Google, Instagram)
-- Modular, production-ready codebase
+- ✨ Real-time 1-on-1 video and text chat (WebRTC, Socket.IO)
+- 🎯 Interest-based matching (gender, tags, preferences)
+- 🔒 Secure, encrypted, and private
+- 📱 Fully responsive (mobile, tablet, desktop)
+- 🎨 Elegant, glassmorphic UI with golden gradients
+- 🎛️ Mute/camera controls, "Next" and "End Chat" actions
+- ⚡ Scalable backend with Redis and Lua scripts
+- 🔐 Modern authentication (NextAuth.js, Google, Instagram)
+- 📦 Modular, production-ready codebase
+- 💎 PWA-ready with custom icons and manifest
+- 🚀 Turbopack for development, webpack for production
+- 📲 Mobile testing support with ADB reverse scripts
 
 ---
 
@@ -48,22 +51,38 @@
 
 ```
 NawaNapam.website/
-├── be/         # Backend (Express, Socket.IO, Redis)
+├── be/                      # Backend (Express, Socket.IO, Redis)
 │   ├── src/
-│   │   ├── app.ts
-│   │   ├── services/
-│   │   ├── socket/
-│   │   └── utils/
-│   ├── redis/scripts/
+│   │   ├── app.ts          # Express app configuration
+│   │   ├── index.ts        # Server entry point
+│   │   ├── services/       # Socket.IO service
+│   │   ├── socket/         # Socket handlers
+│   │   └── utils/          # Redis client & utilities
+│   ├── redis/scripts/      # Lua scripts for Redis
+│   ├── scripts/            # Build & utility scripts
+│   │   └── reverse-port.js # ADB reverse for mobile (port 8080)
 │   └── package.json
-├── fe/         # Frontend (Next.js, UI, Auth, Prisma)
+├── fe/                      # Frontend (Next.js, UI, Auth, Prisma)
 │   ├── src/
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/
+│   │   ├── app/            # Next.js App Router
+│   │   ├── components/     # React components
+│   │   ├── hooks/          # Custom hooks (Socket, WebRTC, etc.)
+│   │   ├── lib/            # Utilities, Prisma, Auth
+│   │   └── types/          # TypeScript definitions
 │   ├── public/
-│   ├── prisma/
+│   │   ├── icons/          # PWA icons (generated)
+│   │   ├── images/         # Static images
+│   │   │   └── nawanapam.png  # Main logo/icon
+│   │   └── manifest.json   # PWA manifest
+│   ├── prisma/             # Database schema & migrations
+│   ├── scripts/            # Build & utility scripts
+│   │   ├── generate-icons.js   # Generate PWA icons
+│   │   ├── generate-favicon.js # Generate favicon
+│   │   └── reverse-fe.js       # ADB reverse for mobile (port 3000)
 │   └── package.json
+├── scripts/
+│   └── start.js            # Root-level dev server runner
+├── package.json            # Root package.json with workspace scripts
 └── README.md
 ```
 
@@ -74,47 +93,78 @@ NawaNapam.website/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/nawa-napam.git
+git clone https://github.com/NawaNapam/NawaNapam.website.git
 cd NawaNapam.website
 ```
 
-### 2. Setup Backend (`be/`)
+### 2. Install Dependencies
 
 ```bash
-cd be
+# Install root dependencies
 npm install
-# Copy and edit your .env (see .env.example if present)
-npm run build
-npm start
-# Or for development:
-npm run dev
-```
 
-### 3. Setup Frontend (`fe/`)
-
-```bash
+# Install frontend dependencies
 cd fe
 npm install
-# Copy and edit your .env.local (see .env.example if present)
+
+# Install backend dependencies
+cd ../be
+npm install
+```
+
+### 3. Run Development Servers
+
+**Option A: Run Both (Recommended)**
+
+```bash
+# From root directory
 npm run dev
 ```
 
-Frontend: [http://localhost:3000](http://localhost:3000)
-Backend: [http://localhost:4000](http://localhost:4000) (or as set in env)
+**Option B: Run Individually**
+
+```bash
+# Frontend only
+npm run dev:fe
+
+# Backend only
+npm run dev:be
+```
+
+**Option C: Mobile Development with ADB**
+
+```bash
+# Automatically setup ADB reverse and start both
+npm run dev:mobile
+```
+
+### 4. Access the Application
+
+- **Frontend**: [http://localhost:3000](http://localhost:3000)
+- **Backend**: [http://localhost:8080](http://localhost:8080)
+- **Mobile**: Use `npm run dev:mobile` after connecting your device via USB
 
 ---
 
 ## Environment Variables
 
-**Backend (`be/.env`):**
-
+````env
+PORT=8080
+REDIS_URL=redis://localhost:6379
+JWT_SECRET=your_secret
+``
 - `PORT=4000`
-- `REDIS_URL=redis://localhost:6379`
-- `JWT_SECRET=your_secret`
+```env
+NEXTAUTH_SECRET=your_secret
+NEXTAUTH_URL=http://localhost:3000
+DATABASE_URL=your_postgresql_url
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+INSTAGRAM_CLIENT_ID=... (optional)
+INSTAGRAM_CLIENT_SECRET=...
+NEXT_PUBLIC_SOCKET_URL=http://localhost:8080
+````
 
-**Frontend (`fe/.env.local`):**
-
-- `NEXTAUTH_SECRET=your_secret`
 - `NEXTAUTH_URL=http://localhost:3000`
 - `GOOGLE_CLIENT_ID=...`
 - `GOOGLE_CLIENT_SECRET=...`
@@ -125,17 +175,40 @@ Backend: [http://localhost:4000](http://localhost:4000) (or as set in env)
 
 ## Scripts
 
-**Backend**
+### Root Level Commands
 
-- `npm run dev` — Start backend in watch mode
-- `npm run build` — Build TypeScript
-- `npm start` — Run compiled server
+```bash
+npm run dev         # Start both frontend and backend with colored output
+npm run dev:fe      # Start frontend only
+npm run dev:be      # Start backend only
+npm run dev:mobile  # Setup ADB reverse + start both (for mobile testing)
+```
 
-**Frontend**
+### Frontend Scripts (`fe/`)
 
-- `npm run dev` — Start Next.js frontend
-- `npm run build` — Build frontend
-- `npm start` — Run production frontend
+```bash
+npm run dev          # Start Next.js with Turbopack
+npm run build        # Build for production (uses webpack for PWA compatibility)
+npm run start        # Start production server
+npm run lint         # Run ESLint
+npm run dev:mobile   # ADB reverse (port 3000) + start dev
+```
+
+### Backend Scripts (`be/`)
+
+```bash
+npm run dev          # Start in watch mode with TypeScript compilation
+npm run build        # Build TypeScript
+npm run start        # Run compiled server
+npm run dev:mobile   # ADB reverse (port 8080) + start dev
+```
+
+### Icon Generation (`fe/scripts/`)
+
+```bash
+node scripts/generate-icons.js   # Generate PWA icons from nawanapam.png
+node scripts/generate-favicon.js # Generate favicon.ico
+```
 
 ---
 

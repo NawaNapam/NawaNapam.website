@@ -9,9 +9,7 @@
     "lint": "eslint",
     "postinstall": "prisma generate",
     "postbuild": "next-sitemap",
-    "adb:reverse": "node scripts/reverse-port.js",
-    "adb:reverse:fe": "node scripts/reverse-fe.js",
-    "adb:reverse:be": "node scripts/reverse-be.js",
+    "adb:reverse": "node scripts/reverse-fe.js",
     "dev:mobile": "npm run adb:reverse && npm run dev"
   },
   "dependencies": {
