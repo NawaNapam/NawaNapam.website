@@ -283,32 +283,56 @@ export function useWebRTC({
     }
 
     // Signaling handlers (keep existing logic)
+    // In useWebRTC hook, MODIFY the onReady handler:
+
     const onReady = (payload: { roomId: string; offerer: string }) => {
       if (payload.roomId !== roomId) return;
-      // console.log(`[WebRTC] rtc:ready. Offerer: ${payload.offerer}`);
+      console.log(
+        `[WebRTC] rtc:ready. Offerer: ${payload.offerer}, Self: ${selfUserId}`
+      );
       politeRef.current = payload.offerer !== selfUserId;
 
+      // ONLY the offerer should create the offer
       if (payload.offerer === selfUserId) {
+        console.log("[WebRTC] I am the offerer, creating offer...");
+
         (async () => {
           if (!pcRef.current) return;
 
+          // Wait for media to be ready
           let attempts = 0;
           while (!mediaReady && attempts < 50) {
             await new Promise((resolve) => setTimeout(resolve, 100));
             attempts++;
           }
 
+          if (!mediaReady) {
+            console.warn(
+              "[WebRTC] Media not ready after 5s, proceeding anyway"
+            );
+          }
+
           try {
             makingOfferRef.current = true;
-            const offer = await pc.createOffer();
-            await pc.setLocalDescription(offer);
-            socket.emit("rtc:offer", { roomId, sdp: pc.localDescription });
+            const offer = await pcRef.current.createOffer({
+              offerToReceiveAudio: true, // ✅ ADD THESE
+              offerToReceiveVideo: true,
+            });
+            await pcRef.current.setLocalDescription(offer);
+
+            console.log("[WebRTC] Sending offer");
+            socket.emit("rtc:offer", {
+              roomId,
+              sdp: pcRef.current.localDescription,
+            });
           } catch (err) {
             console.error("[WebRTC] createOffer failed:", err);
           } finally {
             makingOfferRef.current = false;
           }
         })();
+      } else {
+        console.log("[WebRTC] I am NOT the offerer, waiting for offer...");
       }
     };
 
