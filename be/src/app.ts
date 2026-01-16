@@ -15,22 +15,26 @@ const PORT = process.env.PORT;
 
 export async function initBE() {
   app.use(express.json());
-  app.use(cors());
+  app.use(
+    cors({
+      origin: ["http://localhost:3000", "https://nawanapam.com"],
+    })
+  );
 
-  
-const io = new Server(httpServer, { cors: { origin: "*" } });
+  const io = new Server(httpServer, { cors: { origin: "*" } });
 
-async function start() {
-  await loadScripts();
+  async function start() {
+    await loadScripts();
 
-  registerConnectionHandlers(io);
+    registerConnectionHandlers(io);
 
-  httpServer.listen(PORT, () => console.log("signaling server running on", PORT));
-}
+    httpServer.listen(PORT, () =>
+      console.log("signaling server running on", PORT)
+    );
+  }
 
-start().catch((e) => {
-  console.error("Failed to start signaling server:", e);
-  process.exit(1);
-});
-
+  start().catch((e) => {
+    console.error("Failed to start signaling server:", e);
+    process.exit(1);
+  });
 }
