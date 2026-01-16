@@ -77,6 +77,10 @@
     "zod": "^4.3.5",
     "zustand": "^5.0.8"
   },
+  "optionalDependencies": {
+    "lightningcss": "^1.24.1",
+    "lightningcss-linux-x64-gnu": "^1.24.1"
+  },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@prisma/config": "^7.0.0",
