@@ -1,276 +1,357 @@
-# NawaNapam
+# NawaNapam.website
 
-**A Premium, Culturally Rich, Real-Time Video Chat Platform for Meaningful Connections**
+> **⚠️ PROPRIETARY - INTERNAL USE ONLY**  
+> This codebase is proprietary and confidential. Access and usage are restricted to authorized employees of NawaNapam organization only. Unauthorized access, use, distribution, or reproduction is strictly prohibited.
 
----
+A modern, real-time anonymous video chat platform built with Next.js and Socket.IO. Connect with random strangers worldwide through instant video calls with end-to-end privacy.
 
-## Overview
+## 🌟 Features
 
-**NawaNapam** — _“New Connection”_ in Assamese — is a modern, luxury video chat platform for meaningful, respectful, and spontaneous connections. Built for India and the world, it combines a beautiful UI, cultural warmth, and robust real-time backend.
+- **Anonymous Video Chat**: Connect with strangers instantly without revealing your identity
+- **Smart Matching**: Gender-based filtering (random, male, female) for better matching
+- **Real-time Communication**:
+  - WebRTC-powered HD video and audio streaming
+  - Live text chat during video sessions
+  - Instant connection in under 3 seconds
+- **Privacy First**:
+  - No profile creation required
+  - Anonymous authentication support
+  - Secure session management
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **Progressive Web App (PWA)**: Install and use as a native app
+- **Admin Dashboard**: Comprehensive moderation and analytics tools
+- **User Management**: Report system, moderation logs, and user banning
 
----
+## 🚀 Tech Stack
 
-## Features
+### Frontend
 
-- ✨ Real-time 1-on-1 video and text chat (WebRTC, Socket.IO)
-- 🎯 Interest-based matching (gender, tags, preferences)
-- 🔒 Secure, encrypted, and private
-- 📱 Fully responsive (mobile, tablet, desktop)
-- 🎨 Elegant, glassmorphic UI with golden gradients
-- 🎛️ Mute/camera controls, "Next" and "End Chat" actions
-- ⚡ Scalable backend with Redis and Lua scripts
-- 🔐 Modern authentication (NextAuth.js, Google, Instagram)
-- 📦 Modular, production-ready codebase
-- 💎 PWA-ready with custom icons and manifest
-- 🚀 Turbopack for development, webpack for production
-- 📲 Mobile testing support with ADB reverse scripts
+- **Framework**: Next.js 15 (App Router)
+- **UI**: React 19, TailwindCSS, Radix UI
+- **Real-time**: Socket.IO Client
+- **Authentication**: NextAuth.js with Prisma adapter
+- **Database ORM**: Prisma
+- **State Management**: Zustand
+- **Forms**: React Hook Form + Zod validation
+- **Video/Audio**: WebRTC, getUserMedia API
+- **Styling**: Framer Motion, Tailwind Animate
 
----
+### Backend
 
-## Architecture
+- **Runtime**: Node.js with TypeScript
+- **Framework**: Express.js
+- **WebSocket**: Socket.IO
+- **Database**: Redis (for real-time matching and session management)
+- **Security**: Helmet, CORS, Rate Limiting
+- **Validation**: Express Validator
 
-**Frontend (`fe/`)**
+### Database
 
-- Next.js 14 (App Router, TypeScript, Tailwind CSS)
-- ShadCN/UI, Lucide React, Sonner, Zustand, Zod
-- NextAuth.js for authentication
-- Prisma ORM for database
-- PWA-ready, Vercel deployable
+- **Primary DB**: PostgreSQL (via Prisma)
+- **Cache/Sessions**: Redis (ioredis)
 
-**Backend (`be/`)**
-
-- Node.js, Express, TypeScript
-- Socket.IO for real-time signaling
-- Redis for state, pub/sub, and matchmaking
-- Lua scripts for atomic match/finalize logic
-- JWT for secure socket authentication
-
----
-
-## Folder Structure
+## 📦 Project Structure
 
 ```
-NawaNapam.website/
-├── be/                      # Backend (Express, Socket.IO, Redis)
+├── be/                          # Backend server
 │   ├── src/
-│   │   ├── app.ts          # Express app configuration
-│   │   ├── index.ts        # Server entry point
-│   │   ├── services/       # Socket.IO service
-│   │   ├── socket/         # Socket handlers
-│   │   └── utils/          # Redis client & utilities
-│   ├── redis/scripts/      # Lua scripts for Redis
-│   ├── scripts/            # Build & utility scripts
-│   │   └── reverse-port.js # ADB reverse for mobile (port 8080)
-│   └── package.json
-├── fe/                      # Frontend (Next.js, UI, Auth, Prisma)
+│   │   ├── app.ts              # Express app setup
+│   │   ├── index.ts            # Server entry point
+│   │   ├── socket/             # Socket.IO handlers
+│   │   │   ├── authHandler.ts
+│   │   │   ├── matchHandler.ts
+│   │   │   ├── rtchandler.ts
+│   │   │   └── chatHandlers.ts
+│   │   └── utils/redis/        # Redis utilities
+│   └── redis/scripts/          # Lua scripts for atomic operations
+│
+├── fe/                          # Frontend application
 │   ├── src/
-│   │   ├── app/            # Next.js App Router
-│   │   ├── components/     # React components
-│   │   ├── hooks/          # Custom hooks (Socket, WebRTC, etc.)
-│   │   ├── lib/            # Utilities, Prisma, Auth
-│   │   └── types/          # TypeScript definitions
-│   ├── public/
-│   │   ├── icons/          # PWA icons (generated)
-│   │   ├── images/         # Static images
-│   │   │   └── nawanapam.png  # Main logo/icon
-│   │   └── manifest.json   # PWA manifest
-│   ├── prisma/             # Database schema & migrations
-│   ├── scripts/            # Build & utility scripts
-│   │   ├── generate-icons.js   # Generate PWA icons
-│   │   ├── generate-favicon.js # Generate favicon
-│   │   └── reverse-fe.js       # ADB reverse for mobile (port 3000)
-│   └── package.json
-├── scripts/
-│   └── start.js            # Root-level dev server runner
-├── package.json            # Root package.json with workspace scripts
-└── README.md
+│   │   ├── app/                # Next.js app router
+│   │   │   ├── (routes)/       # Public routes
+│   │   │   ├── (admin)/        # Admin panel
+│   │   │   └── api/            # API routes
+│   │   ├── components/
+│   │   │   ├── custom/         # Custom components
+│   │   │   │   ├── VideoChat.tsx
+│   │   │   │   ├── Dashboard.tsx
+│   │   │   │   └── HeroSection.tsx
+│   │   │   └── ui/             # Reusable UI components
+│   │   ├── hooks/
+│   │   │   ├── SocketProvider.ts
+│   │   │   ├── useWebRTC.ts
+│   │   │   └── useRoomChat.ts
+│   │   ├── lib/                # Utilities
+│   │   └── stores/             # Zustand stores
+│   └── prisma/
+│       └── schema.prisma       # Database schema
 ```
 
----
+## 🛠️ Installation
 
-## Quick Start
+### Prerequisites
 
-### 1. Clone the Repository
+- Node.js 20+ and npm/yarn
+- PostgreSQL database
+- Redis server
+- (Optional) ADB for mobile development
+
+### 1. Clone the repository
+
+> **Note**: You must be an authorized employee with repository access.
 
 ```bash
 git clone https://github.com/NawaNapam/NawaNapam.website.git
 cd NawaNapam.website
 ```
 
-### 2. Install Dependencies
+### 2. Backend Setup
 
 ```bash
-# Install root dependencies
+cd be
 npm install
 
-# Install frontend dependencies
-cd fe
-npm install
+# Create .env file
+cat > .env << EOF
+PORT=8080
+REDIS_HOST=localhost
+REDIS_PORT=6379
+STALE_MS=30000
+EOF
 
-# Install backend dependencies
-cd ../be
-npm install
-```
-
-### 3. Run Development Servers
-
-**Option A: Run Both (Recommended)**
-
-```bash
-# From root directory
+# Start the backend
 npm run dev
 ```
 
-**Option B: Run Individually**
+### 3. Frontend Setup
 
 ```bash
-# Frontend only
-npm run dev:fe
+cd fe
+npm install
 
-# Backend only
-npm run dev:be
+# Create .env file
+cat > .env << EOF
+# Database
+DATABASE_URL="postgresql://user:password@localhost:5432/nawanapam"
+
+# NextAuth
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your-secret-key-here
+
+# Socket.IO
+NEXT_PUBLIC_SIGNALING_URL=http://localhost:8080
+
+# Redis (for rate limiting)
+UPSTASH_REDIS_REST_URL=your-redis-url
+UPSTASH_REDIS_REST_TOKEN=your-redis-token
+
+# Email (optional - for notifications)
+RESEND_API_KEY=your-resend-key
+EOF
+
+# Setup database
+npx prisma generate
+npx prisma migrate dev
+
+# Start the frontend
+npm run dev
 ```
 
-**Option C: Mobile Development with ADB**
+### 4. Access the application
+
+- **Frontend**: http://localhost:3000
+- **Backend**: http://localhost:8080
+
+## 🎮 Usage
+
+### For Users
+
+1. **Sign Up/Sign In**: Create an account or sign in (anonymous mode available)
+2. **Choose Preference**: Select gender preference (random/male/female)
+3. **Start Matching**: Click "Start" to begin finding a chat partner
+4. **Video Chat**: Once matched, enjoy HD video chat with text messaging
+5. **Next/End**: Skip to next person or end the session
+
+### For Developers
+
+#### Run with ADB (Android Mobile Testing)
 
 ```bash
-# Automatically setup ADB reverse and start both
+# Frontend
+cd fe
+npm run dev:mobile
+
+# Backend
+cd be
 npm run dev:mobile
 ```
 
-### 4. Access the Application
+#### Build for Production
 
-- **Frontend**: [http://localhost:3000](http://localhost:3000)
-- **Backend**: [http://localhost:8080](http://localhost:8080)
-- **Mobile**: Use `npm run dev:mobile` after connecting your device via USB
+```bash
+# Frontend
+cd fe
+npm run build
+npm start
 
----
+# Backend
+cd be
+npm run build
+npm start
+```
 
-## Environment Variables
+## 🔐 Security Features
 
-````env
-PORT=8080
-REDIS_URL=redis://localhost:6379
-JWT_SECRET=your_secret
-``
-- `PORT=4000`
+- **CSRF Protection**: Edge CSRF tokens for forms
+- **Rate Limiting**: Upstash Redis-based rate limiting
+- **Helmet.js**: Security headers and policies
+- **Password Security**: Bcrypt hashing
+- **Input Validation**: Zod schemas and express-validator
+- **Session Management**: Secure cookie-based sessions
+- **Environment Variables**: Sensitive data in .env files
+
+## 📱 PWA Features
+
+- Offline support
+- Install to home screen
+- App-like experience
+- Optimized performance
+- Background sync
+- Push notifications (coming soon)
+
+## 🎨 Customization
+
+### Styling
+
+- Edit TailwindCSS config in `fe/tailwind.config.ts`
+- Custom styles in `fe/src/app/globals.css`
+- Theme customization via `next-themes`
+
+### Components
+
+- UI components in `fe/src/components/ui/`
+- Custom components in `fe/src/components/custom/`
+- Radix UI primitives for accessibility
+
+## 🔧 Configuration
+
+### Frontend Environment Variables
+
 ```env
-NEXTAUTH_SECRET=your_secret
-NEXTAUTH_URL=http://localhost:3000
-DATABASE_URL=your_postgresql_url
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-INSTAGRAM_CLIENT_ID=... (optional)
-INSTAGRAM_CLIENT_SECRET=...
-NEXT_PUBLIC_SOCKET_URL=http://localhost:8080
-````
-
-- `NEXTAUTH_URL=http://localhost:3000`
-- `GOOGLE_CLIENT_ID=...`
-- `GOOGLE_CLIENT_SECRET=...`
-- `INSTAGRAM_CLIENT_ID=...` (optional)
-- `INSTAGRAM_CLIENT_SECRET=...`
-
----
-
-## Scripts
-
-### Root Level Commands
-
-```bash
-npm run dev         # Start both frontend and backend with colored output
-npm run dev:fe      # Start frontend only
-npm run dev:be      # Start backend only
-npm run dev:mobile  # Setup ADB reverse + start both (for mobile testing)
+DATABASE_URL=              # PostgreSQL connection string
+NEXTAUTH_URL=             # App URL
+NEXTAUTH_SECRET=          # NextAuth secret key
+NEXT_PUBLIC_SIGNALING_URL= # Backend Socket.IO URL
+UPSTASH_REDIS_REST_URL=   # Redis URL for rate limiting
+UPSTASH_REDIS_REST_TOKEN= # Redis token
+RESEND_API_KEY=           # Email service API key
 ```
 
-### Frontend Scripts (`fe/`)
+### Backend Environment Variables
 
-```bash
-npm run dev          # Start Next.js with Turbopack
-npm run build        # Build for production (uses webpack for PWA compatibility)
-npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run dev:mobile   # ADB reverse (port 3000) + start dev
+```env
+PORT=8080                 # Server port
+REDIS_HOST=localhost      # Redis host
+REDIS_PORT=6379          # Redis port
+STALE_MS=30000           # Stale connection timeout
 ```
 
-### Backend Scripts (`be/`)
+## 📊 Database Schema
 
-```bash
-npm run dev          # Start in watch mode with TypeScript compilation
-npm run build        # Build TypeScript
-npm run start        # Run compiled server
-npm run dev:mobile   # ADB reverse (port 8080) + start dev
-```
+Key models:
 
-### Icon Generation (`fe/scripts/`)
+- **User**: User accounts and profiles
+- **Account**: OAuth provider accounts
+- **Session**: User sessions
+- **Room**: Chat rooms
+- **Participant**: Room participants
+- **Message**: Chat messages
+- **Report**: User reports
+- **ModerationLog**: Moderation actions
+- **Interest**: User interests
 
-```bash
-node scripts/generate-icons.js   # Generate PWA icons from nawanapam.png
-node scripts/generate-favicon.js # Generate favicon.ico
-```
+See [fe/prisma/schema.prisma](fe/prisma/schema.prisma) for full schema.
 
----
+## 👨‍💻 Internal Development Guidelines
 
-## Key Pages & API
+> **For Authorized Employees Only**
 
-| Route              | Purpose         | Design Highlights                    |
-| ------------------ | --------------- | ------------------------------------ |
-| `/`                | Landing Page    | Hero, golden glow, animated blobs    |
-| `/login`           | Login Page      | Glass card, live time, golden inputs |
-| `/signup`          | Signup Page     | Same as login, extra fields          |
-| `/dashboard`       | User Dashboard  | Stats, quick actions, golden cards   |
-| `/settings/update` | Profile Update  | Avatar, edit badge, golden button    |
-| `/chat`            | Video Chat Room | Full-screen, no-scroll, golden tags  |
+Please follow these steps when working on the codebase:
 
----
+1. Create a feature branch: `git checkout -b feature/amazing-feature`
+2. Commit your changes: `git commit -m 'Add amazing feature'`
+3. Push to the branch: `git push origin feature/amazing-feature`
+4. Open a Pull Request for team review
+5. Await approval from team lead before merging
 
-## Backend API & Real-Time
+### Development Guidelines
 
-- **Socket.IO**: `/socket` namespace for signaling, matchmaking, chat
-- **REST API**: (extendable for user/profile management)
-- **Redis**: Used for user state, matchmaking pools, pub/sub
-- **Lua Scripts**: Atomic match/finalize logic for performance
+- Follow TypeScript best practices
+- Write meaningful commit messages
+- Add comments for complex logic
+- Test on multiple devices/browsers
+- Ensure accessibility standards
+- **Never share code or credentials outside the organization**
+- **Always use VPN when accessing production systems**
 
----
+## 📝 License
 
-## Roadmap
+**Proprietary and Confidential**
 
-- [ ] Advanced WebRTC (Socket.IO / LiveKit / PeerJS)
-- [ ] Smarter interest-based matching
-- [ ] Like / Report user
-- [ ] Chat history & favorites
-- [ ] Mobile app (React Native / Expo)
-- [ ] Hindi / Regional language support
+This codebase is the exclusive property of NawaNapam organization. All rights reserved.
+
+- ❌ No public distribution
+- ❌ No unauthorized use or modification
+- ❌ No sharing outside the organization
+- ✅ Internal use by authorized employees only
+
+For licensing inquiries, contact the legal department.
+
+## 🐛 Known Issues
+
+- Camera switching on iOS requires page refresh
+- Some Android devices need manual permissions
+- WebRTC connections may fail on restrictive networks
+
+## 🔮 Roadmap
+
+- [ ] Group video chat (3+ people)
+- [ ] Screen sharing
+- [ ] Virtual backgrounds
+- [ ] Gifts and reactions
+- [ ] Advanced filtering (interests, location)
+- [ ] Mobile apps (React Native)
+- [ ] AI moderation
+- [ ] End-to-end encryption
 - [ ] Voice-only mode
-- [ ] Dark/Light mode toggle
+- [ ] Recording feature (with consent)
+
+## 📞 Internal Support
+
+For issues, questions, or suggestions (employees only):
+
+- **Issues**: [GitHub Issues](https://github.com/NawaNapam/NawaNapam.website/issues) (private repository)
+- **Internal Chat**: Contact the development team on Slack/Teams
+- **Email**: support@nawanapam.com (internal only)
+
+## 🌐 Links
+
+- **Website**: [nawanapam.com](https://nawanapam.com)
+
+## 👥 Development Team
+
+- **NawaNapam Internal Development Team**
+- For team roster and contacts, see internal documentation
+
+## 🙏 Acknowledgments
+
+- Next.js team for the amazing framework
+- Socket.IO for real-time communication
+- Prisma for database tooling
+- Radix UI for accessible components
+- Vercel for hosting and analytics
 
 ---
 
-## Contributing
-
-We welcome contributions! Please:
-
-- Open issues for bugs/ideas
-- Submit PRs (with clear descriptions)
-- Follow code style and keep the **calm, luxurious, Indian soul** alive
-
----
-
-## License
-
-MIT License © 2025 Nawa Napam
-
----
-
-**Made with love in India**
-
-> _"Har mulakat ek nayi kahani hai."_  
-> — Every meeting is a new story.
-
----
-
-**Star this repo if you love the vibe!**
-
-Namaste  
-— The NTeam
+**© 2026 NawaNapam Organization - Proprietary & Confidential**  
+**For Internal Use by Authorized Employees Only**
