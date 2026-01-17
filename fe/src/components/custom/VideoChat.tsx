@@ -17,6 +17,8 @@ import {
   User,
   MessageCircle,
   Camera,
+  SwitchCamera,
+  CameraOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -26,6 +28,7 @@ import { useRoomChat } from "@/hooks/useRoomChat";
 import { useSignaling, onAuthOk } from "@/hooks/SocketProvider";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import "@/styles/ext.css";
+import { Switch } from "@radix-ui/react-switch";
 
 interface VideoChatPageProps {
   gender: string;
@@ -902,7 +905,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-3"
                 style={{ zIndex: 15, pointerEvents: "none" }}
               >
-                <VideoOff size={48} className="text-white/40" />
+                <CameraOff size={48} className="text-white/40" />
                 <p className="text-xs text-white/60">Your video is off</p>
               </div>
             )}
@@ -1086,7 +1089,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 )}
                 {isStreamSwapped && isVideoOff && (
                   <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-3 z-10">
-                    <VideoOff size={48} className="text-white/40" />
+                    <CameraOff size={48} className="text-white/40" />
                     <p className="text-xs text-white/60">Your video is off</p>
                   </div>
                 )}
@@ -1322,9 +1325,9 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
             }`}
           >
             {isVideoOff ? (
-              <VideoOff size={20} className="text-white" />
+              <CameraOff size={20} className="text-white" />
             ) : (
-              <VideoIcon size={20} className="text-white" />
+              <Camera size={20} className="text-white" />
             )}
           </button>
 
@@ -1333,7 +1336,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
             onClick={switchCamera}
             className="w-12 h-12 flex-shrink-0 rounded-full bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20 flex items-center justify-center transition-all shadow-lg"
           >
-            <Camera size={20} className="text-white" />
+            <SwitchCamera size={20} className="text-white" />
           </button>
 
           {/* Next/Start Button */}
