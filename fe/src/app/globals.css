@@ -2,6 +2,19 @@
 @import "tw-animate-css";
 @import "../styles/performance.css";
 
+/* Prevent pull-to-refresh on mobile */
+html,
+body {
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+
+/* Specifically prevent pull-to-refresh on touch devices */
+body {
+  overscroll-behavior: none;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

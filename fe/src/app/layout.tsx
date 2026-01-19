@@ -51,7 +51,16 @@ export const metadata: Metadata = {
     telephone: false,
   },
   icons: {
-    icon: "/icons/manifest-icon-192.maskable.png",
+    icon: [
+      { url: "/favicon.ico", sizes: "32x32" },
+      { url: "/icons/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/favicon-32.png", sizes: "32x32", type: "image/png" },
+      {
+        url: "/icons/manifest-icon-192.maskable.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+    ],
     apple: "/icons/apple-icon-180.png",
   },
 };
@@ -60,6 +69,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

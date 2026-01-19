@@ -97,7 +97,7 @@ export default function Footer() {
               </p>
               <a
                 href="mailto:support@nawanapam.com"
-                className="flex items-center justify-center md:justify-start gap-2 mt-4 text-sm text-amber-300 hover:text-amber-100 transition-all group"
+                className="flex items-center justify-center md:justify-start gap-2 mt-4 text-sm text-amber-200 hover:text-amber-100 transition-all group"
               >
                 <div className="p-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 group-hover:bg-amber-500/20 transition-all">
                   <Mail
@@ -115,7 +115,7 @@ export default function Footer() {
                 <button
                   key={policy}
                   onClick={() => setModalOpen(policy)}
-                  className="text-amber-300 hover:text-amber-100 font-medium transition-all hover:translate-y-[-2px]"
+                  className="text-amber-200 hover:text-amber-100 font-medium transition-all hover:translate-y-[-2px]"
                 >
                   {policy.replace(/ of | /g, " ")}
                 </button>
@@ -126,7 +126,7 @@ export default function Footer() {
             <div className="text-center md:text-right">
               <button
                 onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-                className="inline-flex items-center gap-2 text-sm font-medium text-amber-300 hover:text-amber-100 transition-all group"
+                className="inline-flex items-center gap-2 text-sm font-medium text-amber-200 hover:text-amber-100 transition-all group"
               >
                 <div className="p-2 rounded-full bg-amber-500/10 border border-amber-500/30 group-hover:bg-amber-500/20 transition-all">
                   <ArrowUp

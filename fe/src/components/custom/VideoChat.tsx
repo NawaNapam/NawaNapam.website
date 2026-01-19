@@ -17,6 +17,8 @@ import {
   User,
   MessageCircle,
   Camera,
+  SwitchCamera,
+  CameraOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -26,6 +28,7 @@ import { useRoomChat } from "@/hooks/useRoomChat";
 import { useSignaling, onAuthOk } from "@/hooks/SocketProvider";
 import { useWebRTC } from "@/hooks/useWebRTC";
 import "@/styles/ext.css";
+import { Switch } from "@radix-ui/react-switch";
 
 interface VideoChatPageProps {
   gender: string;
@@ -154,9 +157,9 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
 
   useEffect(() => {
     const enablePlayback = () => {
-      console.log(
-        "[Mobile] 📱 User interaction detected - enabling video playback"
-      );
+      // console.log(
+      //   "[Mobile] 📱 User interaction detected - enabling video playback"
+      // );
       setUserInteracted(true);
 
       const selfEl = getSelfEl();
@@ -234,13 +237,6 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
     userInteracted,
   ]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // useEffect(() => {
-  //   if (strangerVideoRef.current && attachRemote) {
-  //     console.log("[VideoChatPage] Attaching remote video element");
-  //     attachRemote(strangerVideoRef.current);
-  //   }
-  // }, [attachRemote]);
-
   useEffect(() => {
     if (!connected) return;
     const el = getRemoteEl();
@@ -303,12 +299,6 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
         localStreamRef.current = mediaStream;
         setLocalStreamReady(true);
 
-        // console.log("[Camera] ✅ Local stream acquired:", {
-        //   videoTracks: mediaStream.getVideoTracks().length,
-        //   audioTracks: mediaStream.getAudioTracks().length,
-        //   videoSettings: mediaStream.getVideoTracks()[0]?.getSettings(),
-        // });
-
         const el = getSelfEl();
         if (el) {
           // **Set attributes BEFORE attaching stream (iOS requirement)**
@@ -363,54 +353,6 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
     attachLocal,
   ]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  //   useEffect(() => {
-  //   const el = getSelfEl();
-  //   const stream = localStreamRef.current;
-
-  //   if (!el) return;
-
-  //   // set autoplay-critical attributes BEFORE attaching stream (iOS)
-  //   el.muted = true;
-  //   el.setAttribute('playsinline', '');
-
-  //   if (stream) {
-  //     if (el.srcObject !== stream) el.srcObject = stream;
-  //     const p = el.play();
-  //     if (p && typeof p.catch === 'function') p.catch(() => {});
-  //   } else {
-  //     try { el.pause(); } catch {}
-  //     (el as any).srcObject = null;
-  //     el.removeAttribute('src');
-  //     try { el.load(); } catch {}
-  //   }
-  // }, [localStreamReady]); // runs when your local stream becomes ready/clears
-
-  // useEffect(() => {
-  //   const el = getSelfEl();
-  //   const stream = localStreamRef.current;
-  //   if (!el || !stream) return;
-  //   if (el.srcObject !== stream) el.srcObject = stream;
-  //   const p = el.play();
-  //   if (p && typeof p.catch === 'function') p.catch(() => {});
-  //   // also wire to WebRTC hook:
-  //   if (attachLocal && el) attachLocal(el);
-  // }, [selfVideoMobileRef.current, selfVideoDesktopRef.current, attachLocal]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // useEffect(() => {
-  //   const el = getRemoteEl();
-  //   if (!el || !attachRemote) return;
-  //   attachRemote(el);
-  //   // attempt play when stream lands
-  //   const tryPlay = () => {
-  //     if (el.srcObject && (el as HTMLVideoElement).paused) {
-  //       const p = (el as HTMLVideoElement).play();
-  //       if (p && typeof p.catch === 'function') p.catch(() => {});
-  //     }
-  //   };
-  //   const id = setInterval(tryPlay, 800);
-  //   return () => clearInterval(id);
-  // }, [strangerVideoMobileRef.current, strangerVideoDesktopRef.current, attachRemote]); // eslint-disable-line react-hooks/exhaustive-deps
-
   function hardResetVideo(el?: HTMLVideoElement | null) {
     if (!el) return;
     try {
@@ -432,7 +374,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
   }
 
   const handleNext = () => {
-    console.log("[Action] 🔄 User pressed NEXT");
+    // console.log("[Action] 🔄 User pressed NEXT");
     clearChat();
     cleanupRemote();
     setRemoteStreamReady(false);
@@ -452,7 +394,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
   };
 
   const handleEnd = () => {
-    console.log("[Action] ⏹️ User pressed END");
+    // console.log("[Action] ⏹️ User pressed END");
     clearChat();
     cleanupRemote();
     setRemoteStreamReady(false);
@@ -477,7 +419,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
   };
 
   const handleSwapStreams = () => {
-    console.log("[Action] 🔄 Swapping video streams");
+    // console.log("[Action] 🔄 Swapping video streams");
 
     // Debounce swap to prevent rapid toggling
     if (swapDebounceRef.current) {
@@ -642,35 +584,6 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
     start();
   };
 
-  // const handleNext = () => {
-  //   console.log("[Action] 🔄 User pressed NEXT");
-  //   clearChat();
-  //   cleanupRemote();
-  //   setRemoteStreamReady(false);
-  //   hasStartedRef.current = false;
-
-  //   if (status === "matched" && roomId) {
-  //     setTimeout(() => {
-  //       next();
-  //     }, 200);
-  //   } else {
-  //     start();
-  //   }
-
-  //   toast.info("Finding next partner...");
-  // };
-
-  // const handleEnd = () => {
-  //   console.log("[Action] ⏹️ User pressed END");
-  //   clearChat();
-  //   cleanupRemote();
-  //   setRemoteStreamReady(false);
-  //   hasStartedRef.current = false;
-  //   end();
-
-  //   toast.info("Chat ended. Your camera is still on.");
-  // };
-
   const handleBackToDashboard = (e: React.MouseEvent) => {
     e.preventDefault();
     handleEnd();
@@ -753,14 +666,14 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
       >
         <button
           onClick={handleBackToDashboard}
-          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/40 backdrop-blur-md border border-emerald-500/20 flex items-center justify-center text-white hover:bg-black/60 transition-all shadow-lg"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/40 backdrop-blur-md border border-emerald-500/20 flex md:hidden items-center justify-center text-white hover:bg-black/60 transition-all shadow-lg"
         >
           <ArrowLeft size={18} className="md:hidden" />
           <ArrowLeft size={20} className="hidden md:block" />
         </button>
 
         {/* Time - Desktop only */}
-        <div className="hidden md:flex items-center gap-2 text-xs font-medium text-emerald-400/80">
+        <div className="hidden md:hidden items-center gap-2 text-xs font-medium text-emerald-400/80">
           <Globe size={14} className="text-amber-400" />
           <span className="font-mono">{currentTime}</span>
         </div>
@@ -992,7 +905,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-3"
                 style={{ zIndex: 15, pointerEvents: "none" }}
               >
-                <VideoOff size={48} className="text-white/40" />
+                <CameraOff size={48} className="text-white/40" />
                 <p className="text-xs text-white/60">Your video is off</p>
               </div>
             )}
@@ -1176,7 +1089,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 )}
                 {isStreamSwapped && isVideoOff && (
                   <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-3 z-10">
-                    <VideoOff size={48} className="text-white/40" />
+                    <CameraOff size={48} className="text-white/40" />
                     <p className="text-xs text-white/60">Your video is off</p>
                   </div>
                 )}
@@ -1412,9 +1325,9 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
             }`}
           >
             {isVideoOff ? (
-              <VideoOff size={20} className="text-white" />
+              <CameraOff size={20} className="text-white" />
             ) : (
-              <VideoIcon size={20} className="text-white" />
+              <Camera size={20} className="text-white" />
             )}
           </button>
 
@@ -1423,7 +1336,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
             onClick={switchCamera}
             className="w-12 h-12 flex-shrink-0 rounded-full bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20 flex items-center justify-center transition-all shadow-lg"
           >
-            <Camera size={20} className="text-white" />
+            <SwitchCamera size={20} className="text-white" />
           </button>
 
           {/* Next/Start Button */}
