@@ -74,7 +74,7 @@ export default function AddAdminPage() {
       setFormData({ email: "", password: "", name: "", role: "MODERATOR" });
 
       setTimeout(() => {
-        router.push("/admin/settings");
+        router.push("/console/settings");
       }, 2000);
     } catch (err) {
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -92,7 +92,7 @@ export default function AddAdminPage() {
       <div className="mx-auto max-w-2xl">
         {/* Header */}
         <div className="mb-6 flex items-center gap-4">
-          <Link href="/admin/settings">
+          <Link href="/console/settings">
             <Button variant="ghost" size="icon">
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -219,7 +219,7 @@ export default function AddAdminPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => router.push("/admin/settings")}
+                  onClick={() => router.push("/console/settings")}
                   disabled={loading}
                   className="w-full sm:w-auto"
                 >

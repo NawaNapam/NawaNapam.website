@@ -153,7 +153,7 @@ export default function AdminDashboard() {
             <CardTitle className="flex items-center justify-between">
               <span>Recent Reports</span>
               <Link
-                href="/admin/reports"
+                href="/console/reports"
                 className="text-sm text-blue-600 hover:underline"
               >
                 View all
@@ -198,7 +198,7 @@ export default function AdminDashboard() {
             <CardTitle className="flex items-center justify-between">
               <span>Recent Users</span>
               <Link
-                href="/admin/users"
+                href="/console/users"
                 className="text-sm text-blue-600 hover:underline"
               >
                 View all

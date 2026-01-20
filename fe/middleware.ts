@@ -5,20 +5,20 @@ import { NextRequest } from "next/server";
 
 // Admin route handler
 async function handleAdminRoutes(req: NextRequest) {
-  const isAdminLoginPage = req.nextUrl.pathname === "/admin/login";
-  const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
+  const isAdminLoginPage = req.nextUrl.pathname === "/console/login";
+  const isAdminRoute = req.nextUrl.pathname.startsWith("/console");
 
   // Check admin session
   const adminSession = req.cookies.get("admin_session")?.value;
 
   // If on admin route (not login) without session, redirect to login
   if (isAdminRoute && !isAdminLoginPage && !adminSession) {
-    return NextResponse.redirect(new URL("/admin/login", req.url));
+    return NextResponse.redirect(new URL("/console/login", req.url));
   }
 
   // If on admin login with session, redirect to dashboard
   if (isAdminLoginPage && adminSession) {
-    return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+    return NextResponse.redirect(new URL("/console/dashboard", req.url));
   }
 
   return null; // Continue to next middleware
@@ -27,7 +27,7 @@ async function handleAdminRoutes(req: NextRequest) {
 export default withAuth(
   async function middleware(req) {
     // Handle admin routes first
-    if (req.nextUrl.pathname.startsWith("/admin")) {
+    if (req.nextUrl.pathname.startsWith("/console")) {
       const adminResponse = await handleAdminRoutes(req);
       if (adminResponse) return adminResponse;
 
@@ -96,7 +96,7 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         // Skip auth check for admin routes
-        if (req.nextUrl.pathname.startsWith("/admin")) {
+        if (req.nextUrl.pathname.startsWith("/console")) {
           return true;
         }
 
@@ -125,7 +125,7 @@ export const config = {
     "/dashboard",
     "/chat",
     "/chat/:path*",
-    "/admin/:path*",
+    "/console/:path*",
     // Add other protected routes
   ],
 };

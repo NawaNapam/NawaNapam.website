@@ -51,7 +51,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch("/api/admin/auth/logout", { method: "POST" });
       setAdmin(null);
-      router.push("/admin/login");
+      router.push("/console/login");
     } catch (error) {
       console.error("Logout error:", error);
     }
