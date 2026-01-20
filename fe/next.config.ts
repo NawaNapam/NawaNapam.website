@@ -68,6 +68,14 @@ const nextConfig: NextConfig = {
         destination: "/404",
         permanent: false,
       },
+      // Block non-console on admin domain
+      {
+        source: "/:path*",
+        has: [{ type: "host", key: "host", value: "admin.nawanapam.com" }],
+        missing: [{ type: "query", key: "ignored", value: "placeholder" }],
+        destination: "/404",
+        permanent: false,
+      },
     ];
   },
 
