@@ -55,27 +55,27 @@ const nextConfig: NextConfig = {
   //----------------------------------------------------------------------
   async redirects() {
     return [
+      // Block /console on main domains
       {
         source: "/console/:path*",
-        has: [
-          {
-            type: "host",
-            value: "www.nawanapam.com",
-          },
-        ],
-        destination: "https://admin.nawanapam.com/console/:path*",
-        permanent: true,
+        has: [{ type: "host", value: "nawanapam.com" }],
+        destination: "/404",
+        permanent: false,
       },
       {
         source: "/console/:path*",
-        has: [
-          {
-            type: "host",
-            value: "nawanapam.com",
-          },
-        ],
-        destination: "https://admin.nawanapam.com/console/:path*",
-        permanent: true,
+        has: [{ type: "host", value: "www.nawanapam.com" }],
+        destination: "/404",
+        permanent: false,
+      },
+
+      // Block NON-console routes on admin domain
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "admin.nawanapam.com" }],
+        missing: [{ type: "path", key: "path", value: "/console/:path*" }],
+        destination: "/404",
+        permanent: false,
       },
     ];
   },
