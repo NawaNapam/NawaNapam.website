@@ -209,7 +209,7 @@ export const sendAdminNotificationEmail = async (
 
               <tr>
                 <td style="padding-bottom:20px; font-size:14px; color:#444;">
-                  Admin Console: <a href="https://admin.nawanapam.com" target="_blank" style="color:#0066ff;">https://admin.nawanapam.com</a>
+                  Admin Console: <a href="https://admin.nawanapam.com/console" target="_blank" style="color:#0066ff;">https://admin.nawanapam.com/console</a>
                 </td>
               </tr>
 
