@@ -33,8 +33,8 @@ export function AdminSidebar() {
   return (
     <div className="flex h-screen w-64 flex-col bg-gray-900 text-white">
       {/* Logo/Brand */}
-      <div className="flex h-16 items-center justify-center border-b border-gray-800">
-        <h1 className="text-xl font-bold">Admin Console</h1>
+      <div className="flex h-18 font-bold items-center justify-start px-5 border-b border-gray-800">
+        NawaNapam
       </div>
 
       {/* Navigation */}
