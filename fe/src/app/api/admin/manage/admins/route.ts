@@ -6,6 +6,7 @@ import {
 } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
+import { sendAdminNotificationEmail } from "@/lib/email";
 
 const createAdminSchema = z.object({
   email: z.string().email(),
@@ -73,10 +74,28 @@ export async function POST(request: NextRequest) {
     }
 
     const newAdmin = await createAdminUser(email, password, name, role);
+    const to = email;
+    const subject = "Welcome to NawaNapam Admin Console";
+    const message = `Hello ${name || ""}, 
+
+    Your admin account has been successfully created. You can now log in to the NawaNapam Admin Console using your email and password mentioned below.
+    Email: ${email}
+    Password: ${password}
+    If you have any questions or need assistance, feel free to reach out.
+
+    Best regards,
+    The NawaNapam Team`;
+
+    const { data, error } = await sendAdminNotificationEmail(
+      to,
+      subject,
+      message,
+    );
 
     return NextResponse.json({
       success: true,
       admin: newAdmin,
+      emailStatus: { data, error },
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
