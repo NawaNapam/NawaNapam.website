@@ -63,7 +63,7 @@ const nextConfig: NextConfig = {
             value: "www.nawanapam.com",
           },
         ],
-        destination: "https://admin.nawanapam.com/:path*",
+        destination: "https://admin.nawanapam.com/admin/:path*",
         permanent: true,
       },
       {
@@ -74,7 +74,7 @@ const nextConfig: NextConfig = {
             value: "nawanapam.com",
           },
         ],
-        destination: "https://admin.nawanapam.com/:path*",
+        destination: "https://admin.nawanapam.com/admin/:path*",
         permanent: true,
       },
     ];
