@@ -76,17 +76,15 @@ export async function POST(request: NextRequest) {
     const newAdmin = await createAdminUser(email, password, name, role);
     const to = email;
     const subject = "Welcome to NawaNapam Admin Console";
-    const message = `Hello ${name || ""}, 
-
-    Your ${role.toLowerCase()} account has been successfully created. You can now log in to the NawaNapam Admin Console using your email and password mentioned below. \n\n
-    Email: ${email}
-    Password: ${password}
-    \n\n
-    If you have any questions or need assistance, feel free to reach out.
-    \n\n
-
-    Best regards,
-    The NawaNapam Team`;
+    const message = `
+Hello ${name || ""},<br><br>
+Your ${role.toLowerCase()} account has been successfully created.<br><br>
+Email: ${email}<br>
+Password: ${password}<br><br>
+If you have any questions or need assistance, feel free to reach out.<br><br>
+Best regards,<br>
+The NawaNapam Team
+`;
 
     const { data, error } = await sendAdminNotificationEmail(
       to,

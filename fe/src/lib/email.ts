@@ -192,8 +192,7 @@ export const sendAdminNotificationEmail = async (
         <tr>
           <td align="center">
             <table width="520" cellpadding="0" cellspacing="0" style="background:#ffffff; border-radius:8px; padding:32px; font-family: Arial, Helvetica, sans-serif; color:#111;">
-
-              <!-- Header -->
+            
               <tr>
                 <td style="padding-bottom:24px;">
                   <h1 style="margin:0; font-size:22px; font-weight:600; color:#000;">
@@ -201,21 +200,25 @@ export const sendAdminNotificationEmail = async (
                   </h1>
                 </td>
               </tr>
-              <!-- Body -->
+
               <tr>
-                <td style="padding-bottom:20px;">
-                  <p style="margin:0; font-size:14px; color:#444; line-height:1.6;"></p>
-                    ${message}
-                  </p>
+                <td style="padding-bottom:20px; font-size:14px; color:#444; line-height:1.6;">
+                  ${message.replace(/\n/g, "<br>")}
                 </td>
               </tr>
-              <!-- Divider -->
+
+              <tr>
+                <td style="padding-bottom:20px; font-size:14px; color:#444;">
+                  Admin Console: <a href="https://admin.nawanapam.com" target="_blank" style="color:#0066ff;">https://admin.nawanapam.com</a>
+                </td>
+              </tr>
+
               <tr>
                 <td style="padding:24px 0;">
                   <hr style="border:none; border-top:1px solid #eee;" />
                 </td>
               </tr>
-              <!-- Footer -->
+
               <tr>
                 <td>
                   <p style="margin:0; font-size:12px; color:#888;">
@@ -223,11 +226,13 @@ export const sendAdminNotificationEmail = async (
                   </p>
                 </td>
               </tr>
+
             </table>
           </td>
         </tr>
       </table>
     `,
   });
+
   return { data, error };
 };
