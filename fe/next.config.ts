@@ -3,16 +3,12 @@ import withPWA from "next-pwa";
 
 const nextConfig: NextConfig = {
   eslint: {
-    // Only run ESLint on these directories during builds
     dirs: ["src", "pages", "components", "lib", "app"],
-    // Ignore ESLint errors during build (for deployment)
     ignoreDuringBuilds: false,
   },
   typescript: {
-    // Don't run TypeScript checking during build if we have type errors
     ignoreBuildErrors: false,
   },
-  // Configure external image domains
   images: {
     remotePatterns: [
       {
@@ -29,45 +25,78 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Experimental features that might help with build performance
   experimental: {
     optimizePackageImports: ["@prisma/client"],
   },
-  // External packages that should not be bundled
   serverExternalPackages: ["jsdom", "canvas", "isomorphic-dompurify"],
-  // Optimize performance
   compress: true,
   poweredByHeader: false,
-  // Security headers
+
+  //----------------------------------------------------------------------
+  // SUBDOMAIN ADMIN HANDLING
+  //----------------------------------------------------------------------
+  async rewrites() {
+    return [
+      {
+        source: "/",
+        has: [
+          {
+            type: "host",
+            value: "admin.nawanapam.com",
+          },
+        ],
+        destination: "/admin",
+      },
+    ];
+  },
+
+  //----------------------------------------------------------------------
+  // BLOCK ACCESS TO OLD PATH OR REDIRECT
+  //----------------------------------------------------------------------
+  async redirects() {
+    return [
+      {
+        source: "/admin/:path*",
+        has: [
+          {
+            type: "host",
+            value: "www.nawanapam.com",
+          },
+        ],
+        destination: "https://admin.nawanapam.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/admin/:path*",
+        has: [
+          {
+            type: "host",
+            value: "nawanapam.com",
+          },
+        ],
+        destination: "https://admin.nawanapam.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
+
+  //----------------------------------------------------------------------
+  // SECURITY HEADERS (kept from your config)
+  //----------------------------------------------------------------------
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: [
-          {
-            key: "X-DNS-Prefetch-Control",
-            value: "on",
-          },
+          { key: "X-DNS-Prefetch-Control", value: "on" },
           {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          {
-            key: "X-Frame-Options",
-            value: "SAMEORIGIN",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "X-XSS-Protection", value: "1; mode=block" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
             key: "Permissions-Policy",
             value: "camera=(self), microphone=(self), geolocation=()",
