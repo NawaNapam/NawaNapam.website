@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build filter
-    const where: any = {};
+    const where: Record<string, string> = {};
     if (action && action !== "all") {
       where.action = action;
     }

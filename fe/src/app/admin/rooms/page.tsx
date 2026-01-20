@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAdminAuth } from "@/components/admin/AdminAuthProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -65,7 +65,7 @@ interface Room {
 }
 
 export default function RoomsPage() {
-  const { admin } = useAdminAuth();
+  const { admin: _admin } = useAdminAuth();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -74,11 +74,7 @@ export default function RoomsPage() {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
-  useEffect(() => {
-    fetchRooms();
-  }, [page, statusFilter]);
-
-  const fetchRooms = async () => {
+  const fetchRooms = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -99,7 +95,11 @@ export default function RoomsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, statusFilter]);
+
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {

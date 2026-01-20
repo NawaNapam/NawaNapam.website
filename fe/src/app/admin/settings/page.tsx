@@ -27,7 +27,7 @@ interface AdminUser {
 }
 
 export default function SettingsPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const { admin } = useAdminAuth();
   const [admins, setAdmins] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);

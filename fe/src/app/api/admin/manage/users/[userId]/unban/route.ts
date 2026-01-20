@@ -4,18 +4,18 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin || !hasAdminRole(admin, "ADMIN")) {
       return NextResponse.json(
-        { error: "Only admins and super admins can unban users" },
+        { error: "Only admins and above can unban users" },
         { status: 403 },
       );
     }
 
-    const userId = params.userId;
+    const { userId } = await params;
     const body = await request.json();
     const { reason } = body;
 

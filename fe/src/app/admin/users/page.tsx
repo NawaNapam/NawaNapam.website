@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAdminAuth } from "@/components/admin/AdminAuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,11 +88,7 @@ export default function UsersPage() {
     admin && (admin.role === "ADMIN" || admin.role === "SUPER_ADMIN");
   const canDeleteUsers = admin && admin.role === "SUPER_ADMIN";
 
-  useEffect(() => {
-    fetchUsers();
-  }, [page, bannedFilter]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -114,7 +110,11 @@ export default function UsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, bannedFilter, search]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

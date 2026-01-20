@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAdminAuth } from "@/components/admin/AdminAuthProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,7 +55,7 @@ interface Report {
 }
 
 export default function ReportsPage() {
-  const { admin } = useAdminAuth();
+  const { admin: _admin } = useAdminAuth();
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -63,11 +63,7 @@ export default function ReportsPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchReports();
-  }, [page, statusFilter]);
-
-  const fetchReports = async () => {
+  const fetchReports = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -88,7 +84,11 @@ export default function ReportsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, statusFilter]);
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const updateReportStatus = async (reportId: string, newStatus: string) => {
     try {

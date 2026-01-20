@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { userId: string } },
+  { params }: { params: Promise<{ userId: string }> },
 ) {
   try {
     const admin = await getCurrentAdmin();
@@ -15,7 +15,7 @@ export async function DELETE(
       );
     }
 
-    const userId = params.userId;
+    const { userId } = await params;
 
     // Check if user exists
     const user = await prisma.user.findUnique({ where: { id: userId } });

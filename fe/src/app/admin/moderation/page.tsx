@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAdminAuth } from "@/components/admin/AdminAuthProvider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -51,18 +51,14 @@ interface ModerationLog {
 }
 
 export default function ModerationPage() {
-  const { admin } = useAdminAuth();
+  const { admin: _admin } = useAdminAuth();
   const [logs, setLogs] = useState<ModerationLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionFilter, setActionFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    fetchLogs();
-  }, [page, actionFilter]);
-
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams({
@@ -83,7 +79,11 @@ export default function ModerationPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, actionFilter]);
+
+  useEffect(() => {
+    fetchLogs();
+  }, [fetchLogs]);
 
   const getActionBadge = (action: string) => {
     switch (action) {

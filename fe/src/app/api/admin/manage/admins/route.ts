@@ -15,7 +15,7 @@ const createAdminSchema = z.object({
 });
 
 // Get all admins
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const admin = await getCurrentAdmin();
     if (!admin || !hasAdminRole(admin, "ADMIN")) {

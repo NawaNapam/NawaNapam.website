@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Card,
   CardContent,
@@ -31,13 +31,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import {
-  TrendingUp,
-  Users,
-  MessageSquare,
-  AlertTriangle,
-  Activity,
-} from "lucide-react";
+import { Users, MessageSquare, AlertTriangle, Activity } from "lucide-react";
 
 interface AnalyticsData {
   timeRange: { days: number; startDate: string; endDate: string };
@@ -81,11 +75,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("30");
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [timeRange]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/admin/analytics?days=${timeRange}`);
@@ -98,7 +88,11 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [timeRange]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics]);
 
   if (loading) {
     return (

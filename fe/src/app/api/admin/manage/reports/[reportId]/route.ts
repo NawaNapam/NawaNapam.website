@@ -10,7 +10,7 @@ const updateReportSchema = z.object({
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { reportId: string } },
+  { params }: { params: Promise<{ reportId: string }> },
 ) {
   try {
     const admin = await getCurrentAdmin();
@@ -21,7 +21,7 @@ export async function PATCH(
       );
     }
 
-    const reportId = params.reportId;
+    const { reportId } = await params;
     const body = await request.json();
     const { status, reviewedBy } = updateReportSchema.parse(body);
 
