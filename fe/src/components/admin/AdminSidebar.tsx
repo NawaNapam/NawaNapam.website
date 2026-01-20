@@ -17,13 +17,13 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { name: "Users", href: "/admin/users", icon: Users },
-  { name: "Chat Rooms", href: "/admin/rooms", icon: MessageSquare },
-  { name: "Reports", href: "/admin/reports", icon: AlertTriangle },
-  { name: "Moderation", href: "/admin/moderation", icon: ShieldAlert },
-  { name: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-  { name: "Settings", href: "/admin/settings", icon: Settings },
+  { name: "Dashboard", href: "/console/dashboard", icon: LayoutDashboard },
+  { name: "Users", href: "/console/users", icon: Users },
+  { name: "Chat Rooms", href: "/console/rooms", icon: MessageSquare },
+  { name: "Reports", href: "/console/reports", icon: AlertTriangle },
+  { name: "Moderation", href: "/console/moderation", icon: ShieldAlert },
+  { name: "Analytics", href: "/console/analytics", icon: BarChart3 },
+  { name: "Settings", href: "/console/settings", icon: Settings },
 ];
 
 export function AdminSidebar() {

@@ -105,7 +105,7 @@ export default function SettingsPage() {
             <CardDescription>Manage administrator accounts</CardDescription>
           </div>
           {isSuperAdmin && (
-            <Link href="/admin/settings/add-admin">
+            <Link href="/console/settings/add-admin">
               <Button className="w-full sm:w-auto">
                 <UserPlus className="mr-2 h-4 w-4" />
                 Add Admin

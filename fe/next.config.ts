@@ -45,7 +45,7 @@ const nextConfig: NextConfig = {
             value: "admin.nawanapam.com",
           },
         ],
-        destination: "/admin",
+        destination: "/console",
       },
     ];
   },
@@ -55,27 +55,18 @@ const nextConfig: NextConfig = {
   //----------------------------------------------------------------------
   async redirects() {
     return [
+      // Block /console on main domains
       {
-        source: "/admin/:path*",
-        has: [
-          {
-            type: "host",
-            value: "www.nawanapam.com",
-          },
-        ],
-        destination: "https://admin.nawanapam.com/:path*",
-        permanent: true,
+        source: "/console/:path*",
+        has: [{ type: "host", value: "nawanapam.com" }],
+        destination: "/404",
+        permanent: false,
       },
       {
-        source: "/admin/:path*",
-        has: [
-          {
-            type: "host",
-            value: "nawanapam.com",
-          },
-        ],
-        destination: "https://admin.nawanapam.com/:path*",
-        permanent: true,
+        source: "/console/:path*",
+        has: [{ type: "host", value: "www.nawanapam.com" }],
+        destination: "/404",
+        permanent: false,
       },
     ];
   },
