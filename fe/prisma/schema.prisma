@@ -23,8 +23,6 @@ model User {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   accounts       Account[]
-  Authenticator  Authenticator[]
-  interests      Interest[]
   moderationLogs ModerationLog[]
   participants   Participant[]
   reportsAgainst Report[]        @relation("ReportsAgainstUser")
@@ -76,20 +74,20 @@ model VerificationToken {
   @@index([expires])
 }
 
-model Authenticator {
-  credentialID         String  @unique
-  userId               String
-  providerAccountId    String
-  credentialPublicKey  String
-  counter              Int
-  credentialDeviceType String
-  credentialBackedUp   Boolean
-  transports           String?
-  user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+// model Authenticator {
+//   credentialID         String  @unique
+//   userId               String
+//   providerAccountId    String
+//   credentialPublicKey  String
+//   counter              Int
+//   credentialDeviceType String
+//   credentialBackedUp   Boolean
+//   transports           String?
+//   user                 User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([userId, credentialID])
-  @@index([userId])
-}
+//   @@id([userId, credentialID])
+//   @@index([userId])
+// }
 
 model ChatRoom {
   id            String         @id @default(uuid())
@@ -112,13 +110,13 @@ model Participant {
   roomId   String
   joinedAt DateTime  @default(now())
   leftAt   DateTime?
-  region   String?
-  lat      Float?
-  lon      Float?
-  ip       String?
-  device   String?
-  turnUsed Boolean?  @default(false)
-  role     String?
+  // region   String?
+  // lat      Float?
+  // lon      Float?
+  // ip       String?
+  // device   String?
+  // turnUsed Boolean?  @default(false)
+  // role     String?
   room     ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
   user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -148,14 +146,14 @@ model Report {
   @@index([createdAt])
 }
 
-model Interest {
-  id     String   @id @default(uuid())
-  userId String
-  tags   String[]
-  user   User     @relation(fields: [userId], references: [id])
+// model Interest {
+//   id     String   @id @default(uuid())
+//   userId String
+//   tags   String[]
+//   user   User     @relation(fields: [userId], references: [id])
 
-  @@index([userId])
-}
+//   @@index([userId])
+// }
 
 model ModerationLog {
   id          String           @id @default(uuid())
