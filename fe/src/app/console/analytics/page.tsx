@@ -32,6 +32,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Users, MessageSquare, AlertTriangle, Activity } from "lucide-react";
+import { COLORS } from "../../../constants/colors";
 
 interface AnalyticsData {
   timeRange: { days: number; startDate: string; endDate: string };
@@ -51,17 +52,6 @@ interface AnalyticsData {
   };
 }
 
-const COLORS = {
-  primary: "#3b82f6",
-  success: "#10b981",
-  warning: "#f59e0b",
-  danger: "#ef4444",
-  purple: "#8b5cf6",
-  pink: "#ec4899",
-  teal: "#14b8a6",
-  orange: "#f97316",
-};
-
 const PIE_COLORS = [
   COLORS.primary,
   COLORS.success,
@@ -75,13 +65,47 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState("30");
 
+  function formatToPretty(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+    });
+  }
+
+  function normalizeAnalyticsDates(data: AnalyticsData) {
+    return {
+      ...data,
+      timeRange: {
+        ...data.timeRange,
+        startDate: formatToPretty(data.timeRange.startDate),
+        endDate: formatToPretty(data.timeRange.endDate),
+      },
+      userGrowth: data.userGrowth.map((item) => ({
+        ...item,
+        date: formatToPretty(item.date),
+      })),
+      reportsOverTime: data.reportsOverTime.map((item) => ({
+        ...item,
+        date: formatToPretty(item.date),
+      })),
+      roomActivity: data.roomActivity.map((item) => ({
+        ...item,
+        date: formatToPretty(item.date),
+      })),
+    };
+  }
+
   const fetchAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/admin/analytics?days=${timeRange}`);
       if (response.ok) {
         const analyticsData = await response.json();
-        setData(analyticsData);
+        console.log("analyticsData", analyticsData);
+
+        const sanitizedData = normalizeAnalyticsDates(analyticsData);
+        setData(sanitizedData);
       }
     } catch (error) {
       console.error("Failed to fetch analytics:", error);
