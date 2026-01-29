@@ -249,6 +249,7 @@ export default function AnalyticsPage() {
                 />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
+
                 <Legend />
                 <Line
                   type="monotone"
