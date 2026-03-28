@@ -9,58 +9,71 @@ import type { User as NextAuthUser } from "next-auth";
 import { googleEnv, nextEnv } from "@/envs/e";
 import { sendWelcomeEmail } from "./email";
 
-export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  providers: [
+const providers = [];
+
+if (googleEnv.CLIENT_ID && googleEnv.CLIENT_SECRET) {
+  providers.push(
     GoogleProvider({
-      clientId: googleEnv.CLIENT_ID!,
-      clientSecret: googleEnv.CLIENT_SECRET!,
+      clientId: googleEnv.CLIENT_ID,
+      clientSecret: googleEnv.CLIENT_SECRET,
     }),
+  );
+}
+
+if (process.env.INSTAGRAM_CLIENT_ID && process.env.INSTAGRAM_CLIENT_SECRET) {
+  providers.push(
     InstagramProvider({
       clientId: process.env.INSTAGRAM_CLIENT_ID,
       clientSecret: process.env.INSTAGRAM_CLIENT_SECRET,
     }),
+  );
+}
 
-    CredentialsProvider({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+providers.push(
+  CredentialsProvider({
+    name: "credentials",
+    credentials: {
+      email: { label: "Email", type: "text" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials) {
+      if (!credentials?.email || !credentials?.password) {
+        return null;
+      }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+      const user = await prisma.user.findUnique({
+        where: { email: credentials.email },
+      });
 
-        if (!user || !user.passwordHash) {
-          return null;
-        }
+      if (!user || !user.passwordHash) {
+        return null;
+      }
 
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.passwordHash
-        );
+      const isValid = await bcrypt.compare(
+        credentials.password,
+        user.passwordHash,
+      );
 
-        if (!isValid) {
-          return null;
-        }
+      if (!isValid) {
+        return null;
+      }
 
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          username: user.username,
-          phoneNumber: user.phoneNumber || undefined,
-          gender: user.gender || undefined,
-        } as NextAuthUser;
-      },
-    }),
-  ],
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        username: user.username,
+        phoneNumber: user.phoneNumber || undefined,
+        gender: user.gender || undefined,
+      } as NextAuthUser;
+    },
+  }),
+);
+
+export const authOptions: NextAuthOptions = {
+  adapter: PrismaAdapter(prisma),
+  providers,
 
   session: { strategy: "jwt" },
 
@@ -74,7 +87,7 @@ export const authOptions: NextAuthOptions = {
         } catch (error) {
           console.error(
             `Failed to send welcome email to ${user.email}:`,
-            error
+            error,
           );
         }
       }
@@ -100,7 +113,7 @@ export const authOptions: NextAuthOptions = {
           if (existingUser) {
             // Check if this OAuth provider is already linked
             const accountLinked = existingUser.accounts.some(
-              (acc) => acc.provider === account.provider
+              (acc) => acc.provider === account.provider,
             );
 
             if (!accountLinked) {

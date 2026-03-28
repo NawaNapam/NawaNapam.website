@@ -46,7 +46,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isStreamSwapped, setIsStreamSwapped] = useState(false); // Track if streams are swapped
   const [cameraFacing, setCameraFacing] = useState<"user" | "environment">(
-    "user"
+    "user",
   );
   const [selfPos, setSelfPos] = useState({ x: 0, y: 0 });
   const dragRef = useRef<{
@@ -123,8 +123,8 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
         gender: user?.gender,
         genderPreference: gender as string,
       }),
-      [userId, username, user?.gender, gender]
-    )
+      [userId, username, user?.gender, gender],
+    ),
   );
 
   // text chat
@@ -216,7 +216,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
       const hasStream =
         (el as HTMLVideoElement)?.srcObject instanceof MediaStream;
       setRemoteStreamReady(
-        hasStream && (el?.srcObject as MediaStream).active === true
+        hasStream && (el?.srcObject as MediaStream).active === true,
       );
       if (hasStream && (el as HTMLVideoElement).paused && userInteracted) {
         const p = el.play();
@@ -513,7 +513,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
           hour: "2-digit",
           minute: "2-digit",
           hour12: true,
-        }) + " IST"
+        }) + " IST",
       );
     };
     tick();
@@ -683,45 +683,9 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
       <div className="h-full w-full flex flex-col overflow-hidden">
         {/* Video Area */}
         <div className="flex-1 w-full relative overflow-hidden">
-          {/* remote fills entire screen on mobile */}
-          <div
-            className="absolute inset-0 md:hidden bg-black"
-            style={{
-              width: "100%",
-              height: "100%",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              zIndex: 1,
-            }}
-          >
-            {/* Remote video - positioned based on swap state */}
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                handleSwapStreams();
-              }}
-              className="cursor-pointer"
-              style={{
-                touchAction: "none",
-                position: "absolute",
-                ...(isStreamSwapped
-                  ? {
-                      top: "80px",
-                      right: "12px",
-                      width: "100px",
-                      height: "140px",
-                      zIndex: 50,
-                    }
-                  : {
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      zIndex: 1,
-                    }),
-              }}
-            >
+          {/* Mobile split-screen: 50/50 */}
+          <div className="absolute inset-0 md:hidden bg-black z-[1] flex flex-col">
+            <div className="relative h-1/2 w-full border-b border-emerald-500/20">
               <video
                 ref={strangerVideoMobileRef}
                 autoPlay
@@ -729,19 +693,8 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 muted={false}
                 webkit-playsinline="true"
                 x-webkit-airplay="allow"
-                className="w-full h-full object-cover bg-black rounded-xl"
-                style={{
-                  display: "block",
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  borderRadius: isStreamSwapped ? "12px" : "0",
-                  border: isStreamSwapped
-                    ? "2px solid rgba(16, 185, 129, 0.4)"
-                    : "none",
-                }}
+                className="w-full h-full object-cover bg-black"
                 onLoadedMetadata={(e) => {
-                  // console.log("[Video] Remote metadata loaded");
                   if (e.currentTarget.paused) {
                     e.currentTarget.play().catch((err) => {
                       console.log("[Video] Remote play failed:", err.name);
@@ -749,37 +702,33 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                   }
                 }}
               />
+
+              {(showSearching || (isFullyConnected && !remoteStreamReady)) && (
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-3 pointer-events-none">
+                  <div className="loader"></div>
+                  <p className="text-xs text-white/90 font-medium text-center px-2">
+                    {showSearching
+                      ? "Finding someone for you..."
+                      : "Waiting for video..."}
+                  </p>
+                </div>
+              )}
+
+              {showConnecting && (
+                <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-2 pointer-events-none">
+                  <div className="w-8 h-8 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></div>
+                  <p className="text-xs text-white/70">Connecting…</p>
+                </div>
+              )}
+
+              {isFullyConnected && (
+                <div className="absolute top-3 left-3 text-white bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-emerald-500/30">
+                  <Users size={10} /> {peer?.username ?? "Stranger"}
+                </div>
+              )}
             </div>
 
-            {/* Local video - positioned based on swap state */}
-            <div
-              onPointerDown={onSelfPointerDown}
-              onPointerMove={onSelfPointerMove}
-              onPointerUp={onSelfPointerUp}
-              onPointerCancel={onSelfPointerUp}
-              // onClick={handleSwapStreams}
-              className="cursor-pointer"
-              style={{
-                touchAction: "none",
-                userSelect: "none",
-                position: "absolute",
-                ...(isStreamSwapped
-                  ? {
-                      top: 0,
-                      left: 0,
-                      width: "100%",
-                      height: "100%",
-                      zIndex: 1,
-                    }
-                  : {
-                      top: `${80 + selfPos.y}px`,
-                      right: `${12 - selfPos.x}px`,
-                      width: "100px",
-                      height: "140px",
-                      zIndex: 50,
-                    }),
-              }}
-            >
+            <div className="relative h-1/2 w-full">
               <video
                 ref={selfVideoMobileRef}
                 autoPlay
@@ -788,19 +737,8 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 webkit-playsinline="true"
                 x-webkit-airplay="allow"
                 className="w-full h-full object-cover bg-black"
-                style={{
-                  display: "block",
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  borderRadius: isStreamSwapped ? "0" : "12px",
-                  border: isStreamSwapped
-                    ? "none"
-                    : "2px solid rgba(16, 185, 129, 0.4)",
-                  transform: "scaleX(-1)",
-                }}
+                style={{ transform: "scaleX(-1)" }}
                 onLoadedMetadata={(e) => {
-                  // console.log("[Video] Local metadata loaded");
                   if (e.currentTarget.paused) {
                     e.currentTarget.play().catch((err) => {
                       console.log("[Video] Local play failed:", err.name);
@@ -808,108 +746,24 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                   }
                 }}
               />
-              {/* Video off overlay - only show when local is in PiP and video is off */}
-              {!isStreamSwapped && isVideoOff && (
-                <div
-                  className="absolute inset-0 bg-black/90 flex items-center justify-center z-10"
-                  style={{ borderRadius: "12px" }}
-                >
-                  <VideoOff size={24} className="text-white/60" />
+
+              <div className="absolute top-3 left-3 text-white bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-emerald-500/30">
+                <User size={10} /> You
+              </div>
+
+              {isVideoOff && (
+                <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-2 pointer-events-none">
+                  <CameraOff size={40} className="text-white/40" />
+                  <p className="text-xs text-white/60">Your video is off</p>
                 </div>
               )}
-              {/* Loading indicator if stream not ready */}
-              {!isStreamSwapped && !localStreamReady && (
-                <div
-                  className="absolute inset-0 bg-black/90 flex items-center justify-center z-10"
-                  style={{ borderRadius: "12px" }}
-                >
-                  <div className="w-6 h-6 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></div>
+
+              {!localStreamReady && (
+                <div className="absolute inset-0 bg-black/90 flex items-center justify-center pointer-events-none">
+                  <div className="w-8 h-8 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></div>
                 </div>
               )}
             </div>
-
-            {/* Overlays - FIXED z-index and visibility logic */}
-            {/* Show 'Finding someone for you...' in remote stream position (based on swap state) */}
-            {(showSearching || (isFullyConnected && !remoteStreamReady)) &&
-              !isStreamSwapped && (
-                <div
-                  className="absolute inset-0 bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4"
-                  style={{ zIndex: 20, pointerEvents: "none" }}
-                >
-                  <div className="loader"></div>
-                  <p className="text-sm text-white/90 font-medium">
-                    {showSearching
-                      ? "Finding someone for you..."
-                      : "Waiting for video..."}
-                  </p>
-                </div>
-              )}
-
-            {/* Show in PiP position when streams are swapped */}
-            {(showSearching || (isFullyConnected && !remoteStreamReady)) &&
-              isStreamSwapped && (
-                <div
-                  className="absolute bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-2"
-                  style={{
-                    top: "80px",
-                    right: "12px",
-                    width: "100px",
-                    height: "140px",
-                    zIndex: 55,
-                    pointerEvents: "none",
-                    borderRadius: "12px",
-                  }}
-                >
-                  <div className="loader"></div>
-                  <p className="text-[9px] text-white/90 font-medium text-center px-1">
-                    {showSearching ? "Finding..." : "Waiting..."}
-                  </p>
-                </div>
-              )}
-
-            {/* Show Connecting in remote stream position (based on swap state) */}
-            {showConnecting && !isStreamSwapped && (
-              <div
-                className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center gap-3"
-                style={{ zIndex: 20, pointerEvents: "none" }}
-              >
-                <div className="w-10 h-10 border-4 border-white/40 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-xs text-white/70">Connecting…</p>
-              </div>
-            )}
-
-            {/* Show Connecting in PiP position when streams are swapped */}
-            {showConnecting && isStreamSwapped && (
-              <div
-                className="absolute bg-black/70 flex flex-col items-center justify-center gap-2"
-                style={{
-                  top: "80px",
-                  right: "12px",
-                  width: "100px",
-                  height: "140px",
-                  zIndex: 55,
-                  pointerEvents: "none",
-                  borderRadius: "12px",
-                }}
-              >
-                <div className="w-6 h-6 border-2 border-white/40 border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-[9px] text-white/70 text-center px-1">
-                  Connecting…
-                </p>
-              </div>
-            )}
-
-            {/* Video off overlay when local video is in main view */}
-            {isStreamSwapped && isVideoOff && (
-              <div
-                className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center gap-3"
-                style={{ zIndex: 15, pointerEvents: "none" }}
-              >
-                <CameraOff size={48} className="text-white/40" />
-                <p className="text-xs text-white/60">Your video is off</p>
-              </div>
-            )}
-            {/* </div> */}
           </div>
         </div>
 

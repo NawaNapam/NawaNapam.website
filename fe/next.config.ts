@@ -2,6 +2,9 @@ import type { NextConfig } from "next";
 import withPWA from "next-pwa";
 
 const nextConfig: NextConfig = {
+  env: {
+    NEXTAUTH_URL: process.env.NEXTAUTH_URL || "http://localhost:3000",
+  },
   eslint: {
     dirs: ["src", "pages", "components", "lib", "app"],
     ignoreDuringBuilds: false,
