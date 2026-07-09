@@ -10,6 +10,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import { useAuthStore } from "@/stores/authStore";
+import HowStreaksWork from "@/components/custom/HowStreaksWork";
 
 const WHY_CHOOSE_US = [
   {
@@ -129,6 +130,8 @@ export default function HeroSection() {
           </div>
         </div>
       </section>
+
+      <HowStreaksWork />
     </>
   );
 }
