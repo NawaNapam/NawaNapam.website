@@ -107,7 +107,9 @@ export default function RoomsPage() {
         return <Badge variant="secondary">Waiting</Badge>;
       case "ACTIVE":
         return (
-          <Badge className="bg-green-600 hover:bg-green-700">Active</Badge>
+          <Badge variant="outline" className="border-success-border text-success">
+            Active
+          </Badge>
         );
       case "ENDED":
         return <Badge variant="outline">Ended</Badge>;
@@ -149,7 +151,7 @@ export default function RoomsPage() {
     <div className="p-4 sm:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold sm:text-3xl">Chat Rooms</h1>
-        <p className="text-sm text-gray-600 sm:text-base">
+        <p className="text-sm text-muted-foreground sm:text-base">
           Monitor and manage chat rooms
         </p>
       </div>
@@ -197,13 +199,13 @@ export default function RoomsPage() {
                     <TableCell>{getStatusBadge(room.status)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-400" />
+                        <Users className="h-4 w-4 text-muted-foreground" />
                         <span>{room._count.participants}</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <AlertTriangle className="h-4 w-4 text-gray-400" />
+                        <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                         <span>{room._count.reports}</span>
                       </div>
                     </TableCell>
@@ -232,7 +234,7 @@ export default function RoomsPage() {
                 <CardContent className="pt-6">
                   <div className="mb-3 flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="mb-1 font-mono text-xs text-gray-500">
+                      <div className="mb-1 font-mono text-xs text-muted-foreground">
                         {room.id.slice(0, 12)}...
                       </div>
                       <div className="flex items-center gap-2">
@@ -243,16 +245,16 @@ export default function RoomsPage() {
 
                   <div className="mb-3 flex gap-4 text-sm">
                     <div className="flex items-center gap-1">
-                      <Users className="h-4 w-4 text-gray-400" />
+                      <Users className="h-4 w-4 text-muted-foreground" />
                       <span>{room._count.participants} users</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <AlertTriangle className="h-4 w-4 text-gray-400" />
+                      <AlertTriangle className="h-4 w-4 text-muted-foreground" />
                       <span>{room._count.reports} reports</span>
                     </div>
                   </div>
 
-                  <div className="mb-3 text-sm text-gray-500">
+                  <div className="mb-3 text-sm text-muted-foreground">
                     Created {new Date(room.createdAt).toLocaleDateString()}
                   </div>
 
@@ -270,8 +272,8 @@ export default function RoomsPage() {
           </div>
 
           {rooms.length === 0 && (
-            <div className="py-12 text-center text-gray-500">
-              <MessageSquare className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+            <div className="py-12 text-center text-muted-foreground">
+              <MessageSquare className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
               <p>No rooms found</p>
             </div>
           )}
@@ -289,7 +291,7 @@ export default function RoomsPage() {
                 <span className="hidden sm:inline">Previous</span>
               </Button>
 
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 Page {page} of {totalPages}
               </span>
 
@@ -321,22 +323,22 @@ export default function RoomsPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
-                  <div className="text-sm text-gray-500">Room ID</div>
+                  <div className="text-sm text-muted-foreground">Room ID</div>
                   <div className="font-mono text-sm">{selectedRoom.id}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Status</div>
+                  <div className="text-sm text-muted-foreground">Status</div>
                   <div>{getStatusBadge(selectedRoom.status)}</div>
                 </div>
                 <div>
-                  <div className="text-sm text-gray-500">Created</div>
+                  <div className="text-sm text-muted-foreground">Created</div>
                   <div className="text-sm">
                     {new Date(selectedRoom.createdAt).toLocaleString()}
                   </div>
                 </div>
                 {selectedRoom.endedAt && (
                   <div>
-                    <div className="text-sm text-gray-500">Ended</div>
+                    <div className="text-sm text-muted-foreground">Ended</div>
                     <div className="text-sm">
                       {new Date(selectedRoom.endedAt).toLocaleString()}
                     </div>
@@ -346,7 +348,7 @@ export default function RoomsPage() {
 
               {selectedRoom.topicTags.length > 0 && (
                 <div>
-                  <div className="mb-2 text-sm text-gray-500">Topics</div>
+                  <div className="mb-2 text-sm text-muted-foreground">Topics</div>
                   <div className="flex flex-wrap gap-2">
                     {selectedRoom.topicTags.map((tag, index) => (
                       <Badge key={index} variant="outline">
@@ -371,10 +373,10 @@ export default function RoomsPage() {
                         <div className="font-medium">
                           {getUserDisplay(participant.user)}
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           {participant.user.email}
                         </div>
-                        <div className="text-xs text-gray-400">
+                        <div className="text-xs text-muted-foreground">
                           Joined:{" "}
                           {new Date(participant.joinedAt).toLocaleString()}
                         </div>
@@ -388,8 +390,8 @@ export default function RoomsPage() {
               </div>
 
               {selectedRoom._count.reports > 0 && (
-                <div className="rounded-lg bg-yellow-50 p-3">
-                  <div className="flex items-center gap-2 text-yellow-800">
+                <div className="rounded-lg bg-signature-yellow/20 border border-border p-3">
+                  <div className="flex items-center gap-2 text-foreground">
                     <AlertTriangle className="h-5 w-5" />
                     <span className="font-medium">
                       {selectedRoom._count.reports} report(s) filed for this

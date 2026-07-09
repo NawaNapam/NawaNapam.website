@@ -189,34 +189,28 @@ const ForgetPassword = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-black via-[#0a0f0a] to-black">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="relative bg-gradient-to-b from-[#0f1a0f] to-[#0a140a] rounded-3xl shadow-2xl border border-amber-500/30 overflow-hidden">
-          {/* Glow Effect */}
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 via-transparent to-yellow-600/5 pointer-events-none" />
-
+        <div className="relative bg-card rounded-lg border border-border overflow-hidden">
           {/* Header */}
-          <div className="relative p-8 pb-6 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 border-b border-amber-500/30">
+          <div className="p-8 pb-6 border-b border-border">
             <div className="flex items-center gap-3 mb-2">
               {step !== "email" && (
                 <button
                   onClick={() => setStep(step === "otp" ? "email" : "otp")}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                  className="p-2 rounded-full border border-border hover:bg-accent transition-colors"
                 >
-                  <ArrowLeft size={20} className="text-amber-300" />
+                  <ArrowLeft size={20} className="text-foreground" />
                 </button>
               )}
-              <h2
-                className="text-2xl font-black text-amber-100"
-                style={{ fontFamily: "var(--font-cinzel), serif" }}
-              >
+              <h2 className="text-2xl font-medium text-foreground">
                 {step === "email" && "Forgot Password"}
                 {step === "otp" && "Verify OTP"}
                 {step === "password" && "Reset Password"}
               </h2>
             </div>
-            <p className="text-sm text-amber-200/70">
+            <p className="text-sm text-body">
               {step === "email" &&
                 "Enter your registered email to receive a verification code for resetting your password."}
               {step === "otp" && "Enter the 6-digit code sent to your email"}
@@ -225,17 +219,17 @@ const ForgetPassword = () => {
           </div>
 
           {/* Content */}
-          <div className="relative p-8">
+          <div className="p-8">
             {/* Email Step */}
             {step === "email" && (
               <form onSubmit={handleSendOTP} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-amber-200/90 mb-2">
+                  <label className="block text-sm font-medium text-body mb-2">
                     Email Address
                   </label>
                   <div className="relative">
                     <Mail
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/50"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                       size={20}
                     />
                     <input
@@ -244,7 +238,7 @@ const ForgetPassword = () => {
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="your@email.com"
                       required
-                      className="w-full pl-12 pr-4 py-3 bg-black/40 border border-amber-500/30 rounded-xl text-amber-100 placeholder:text-amber-400/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                      className="w-full h-11 pl-12 pr-4 bg-background border border-input rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring transition-colors"
                     />
                   </div>
                 </div>
@@ -252,7 +246,7 @@ const ForgetPassword = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-12 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -270,12 +264,12 @@ const ForgetPassword = () => {
             {step === "otp" && (
               <form onSubmit={handleVerifyOTP} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-amber-200/90 mb-2">
+                  <label className="block text-sm font-medium text-body mb-2">
                     Verification Code
                   </label>
                   <div className="relative">
                     <KeyRound
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/50"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                       size={20}
                     />
                     <input
@@ -287,10 +281,10 @@ const ForgetPassword = () => {
                       placeholder="000000"
                       maxLength={6}
                       required
-                      className="w-full pl-12 pr-4 py-3 bg-black/40 border border-amber-500/30 rounded-xl text-amber-100 placeholder:text-amber-400/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all text-center text-2xl tracking-widest font-mono"
+                      className="w-full h-14 pl-12 pr-4 bg-background border border-input rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring transition-colors text-center text-2xl tracking-widest font-mono"
                     />
                   </div>
-                  <p className="text-xs text-amber-300/60 mt-2">
+                  <p className="text-xs text-muted-foreground mt-2">
                     Sent to {email}
                   </p>
                 </div>
@@ -298,7 +292,7 @@ const ForgetPassword = () => {
                 <button
                   type="submit"
                   disabled={loading || otp.length !== 6}
-                  className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-12 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -314,7 +308,7 @@ const ForgetPassword = () => {
                   type="button"
                   onClick={handleResendOTP}
                   disabled={loading || resendCooldown > 0}
-                  className="w-full text-sm text-amber-300 hover:text-amber-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full text-sm text-link hover:text-link-active transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {resendCooldown > 0 ? (
                     <>
@@ -332,12 +326,12 @@ const ForgetPassword = () => {
             {step === "password" && (
               <form onSubmit={handleResetPassword} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-amber-200/90 mb-2">
+                  <label className="block text-sm font-medium text-body mb-2">
                     New Password
                   </label>
                   <div className="relative">
                     <Lock
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/50"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                       size={20}
                     />
                     <input
@@ -347,7 +341,7 @@ const ForgetPassword = () => {
                       placeholder="••••••••"
                       required
                       minLength={8}
-                      className="w-full pl-12 pr-4 py-3 bg-black/40 border border-amber-500/30 rounded-xl text-amber-100 placeholder:text-amber-400/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                      className="w-full h-11 pl-12 pr-4 bg-background border border-input rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring transition-colors"
                     />
                   </div>
                   {newPassword && (
@@ -355,8 +349,8 @@ const ForgetPassword = () => {
                       <p
                         className={
                           newPassword.length >= 8
-                            ? "text-green-400"
-                            : "text-amber-400/60"
+                            ? "text-success"
+                            : "text-muted-foreground"
                         }
                       >
                         ✓ At least 8 characters
@@ -364,8 +358,8 @@ const ForgetPassword = () => {
                       <p
                         className={
                           /[A-Z]/.test(newPassword)
-                            ? "text-green-400"
-                            : "text-amber-400/60"
+                            ? "text-success"
+                            : "text-muted-foreground"
                         }
                       >
                         ✓ Contains uppercase letter
@@ -373,8 +367,8 @@ const ForgetPassword = () => {
                       <p
                         className={
                           /[a-z]/.test(newPassword)
-                            ? "text-green-400"
-                            : "text-amber-400/60"
+                            ? "text-success"
+                            : "text-muted-foreground"
                         }
                       >
                         ✓ Contains lowercase letter
@@ -382,8 +376,8 @@ const ForgetPassword = () => {
                       <p
                         className={
                           /[0-9]/.test(newPassword)
-                            ? "text-green-400"
-                            : "text-amber-400/60"
+                            ? "text-success"
+                            : "text-muted-foreground"
                         }
                       >
                         ✓ Contains number
@@ -393,12 +387,12 @@ const ForgetPassword = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-amber-200/90 mb-2">
+                  <label className="block text-sm font-medium text-body mb-2">
                     Confirm Password
                   </label>
                   <div className="relative">
                     <Lock
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-amber-400/50"
+                      className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                       size={20}
                     />
                     <input
@@ -408,12 +402,12 @@ const ForgetPassword = () => {
                       placeholder="••••••••"
                       required
                       minLength={8}
-                      className="w-full pl-12 pr-4 py-3 bg-black/40 border border-amber-500/30 rounded-xl text-amber-100 placeholder:text-amber-400/30 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all"
+                      className="w-full h-11 pl-12 pr-4 bg-background border border-input rounded-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:border-ring transition-colors"
                     />
                   </div>
                   {confirmPassword && (
                     <p
-                      className={`mt-2 text-xs ${newPassword === confirmPassword ? "text-green-400" : "text-red-400"}`}
+                      className={`mt-2 text-xs ${newPassword === confirmPassword ? "text-success" : "text-destructive"}`}
                     >
                       {newPassword === confirmPassword
                         ? "✓ Passwords match"
@@ -429,7 +423,7 @@ const ForgetPassword = () => {
                     newPassword !== confirmPassword ||
                     newPassword.length < 8
                   }
-                  className="w-full py-3 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full h-12 bg-primary text-primary-foreground font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -445,13 +439,10 @@ const ForgetPassword = () => {
           </div>
 
           {/* Footer */}
-          <div className="p-6 bg-black/40 border-t border-amber-500/20 text-center">
-            <p className="text-xs text-amber-300/70">
+          <div className="p-6 border-t border-border text-center">
+            <p className="text-xs text-muted-foreground">
               Remember your password?{" "}
-              <a
-                href="/login"
-                className="text-amber-300 hover:text-amber-100 font-medium underline"
-              >
+              <a href="/login" className="text-link hover:text-link-active font-medium">
                 Sign In
               </a>
             </p>

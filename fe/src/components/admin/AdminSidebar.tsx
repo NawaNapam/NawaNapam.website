@@ -31,10 +31,10 @@ export function AdminSidebar() {
   const { admin, logout } = useAdminAuth();
 
   return (
-    <div className="flex h-screen w-64 flex-col bg-gray-900 text-white">
+    <div className="flex h-screen w-64 flex-col bg-surface-dark text-on-dark">
       {/* Logo/Brand */}
-      <div className="flex h-16 items-center justify-center border-b border-gray-800">
-        <h1 className="text-xl font-bold">Admin Console</h1>
+      <div className="flex h-16 items-center justify-center border-b border-white/10">
+        <h1 className="text-xl font-semibold">Admin Console</h1>
       </div>
 
       {/* Navigation */}
@@ -51,8 +51,8 @@ export function AdminSidebar() {
               className={cn(
                 "group flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-gray-800 text-white"
-                  : "text-gray-300 hover:bg-gray-800 hover:text-white",
+                  ? "bg-surface-dark-elevated text-on-dark"
+                  : "text-on-dark/70 hover:bg-surface-dark-elevated hover:text-on-dark",
               )}
             >
               <Icon className="mr-3 h-5 w-5" />
@@ -63,14 +63,14 @@ export function AdminSidebar() {
       </nav>
 
       {/* Admin Info & Logout */}
-      <div className="border-t border-gray-800 p-4">
+      <div className="border-t border-white/10 p-4">
         <div className="mb-3">
           <p className="text-sm font-medium">{admin?.name || admin?.email}</p>
-          <p className="text-xs text-gray-400">{admin?.role}</p>
+          <p className="text-xs text-on-dark/60">{admin?.role}</p>
         </div>
         <Button
           variant="ghost"
-          className="w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white"
+          className="w-full justify-start text-on-dark/70 hover:bg-surface-dark-elevated hover:text-on-dark"
           onClick={logout}
         >
           <LogOut className="mr-3 h-5 w-5" />

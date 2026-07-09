@@ -658,7 +658,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-gradient-to-br from-emerald-950 via-slate-950 to-amber-950 flex flex-col font-sans">
+    <div className="h-screen w-screen overflow-hidden bg-surface-dark flex flex-col font-sans">
       {/* Header */}
       <header
         className="absolute top-0 inset-x-0 px-4 py-3 md:px-6 md:py-4 flex items-center justify-between"
@@ -666,15 +666,15 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
       >
         <button
           onClick={handleBackToDashboard}
-          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/40 backdrop-blur-md border border-emerald-500/20 flex md:hidden items-center justify-center text-white hover:bg-black/60 transition-all shadow-lg"
+          className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex md:hidden items-center justify-center text-white hover:bg-black/60 transition-all shadow-lg"
         >
           <ArrowLeft size={18} className="md:hidden" />
           <ArrowLeft size={20} className="hidden md:block" />
         </button>
 
         {/* Time - Desktop only */}
-        <div className="hidden md:hidden items-center gap-2 text-xs font-medium text-emerald-400/80">
-          <Globe size={14} className="text-amber-400" />
+        <div className="hidden md:hidden items-center gap-2 text-xs font-medium text-white/60">
+          <Globe size={14} className="text-white/80" />
           <span className="font-mono">{currentTime}</span>
         </div>
       </header>
@@ -685,7 +685,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
         <div className="flex-1 w-full relative overflow-hidden">
           {/* Mobile split-screen: 50/50 */}
           <div className="absolute inset-0 md:hidden bg-black z-[1] flex flex-col">
-            <div className="relative h-1/2 w-full border-b border-emerald-500/20">
+            <div className="relative h-1/2 w-full border-b border-white/10">
               <video
                 ref={strangerVideoMobileRef}
                 autoPlay
@@ -704,7 +704,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
               />
 
               {(showSearching || (isFullyConnected && !remoteStreamReady)) && (
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-3 pointer-events-none">
+                <div className="absolute inset-0 bg-surface-dark/70 backdrop-blur-sm flex flex-col items-center justify-center gap-3 pointer-events-none">
                   <div className="loader"></div>
                   <p className="text-xs text-white/90 font-medium text-center px-2">
                     {showSearching
@@ -722,7 +722,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
               )}
 
               {isFullyConnected && (
-                <div className="absolute top-3 left-3 text-white bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-emerald-500/30">
+                <div className="absolute top-3 left-3 text-white bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-white/15">
                   <Users size={10} /> {peer?.username ?? "Stranger"}
                 </div>
               )}
@@ -747,7 +747,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 }}
               />
 
-              <div className="absolute top-3 left-3 text-white bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-emerald-500/30">
+              <div className="absolute top-3 left-3 text-white bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-white/15">
                 <User size={10} /> You
               </div>
 
@@ -772,11 +772,11 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
           {/* Main Video Area - 9 columns */}
           <div className="col-span-9 h-full w-full overflow-hidden">
             {/* Main video container */}
-            <div className="relative rounded-2xl overflow-hidden bg-black border border-emerald-500/20 shadow-2xl h-full w-full">
+            <div className="relative rounded-2xl overflow-hidden bg-black border border-white/10 shadow-2xl h-full w-full">
               {/* Show 'Finding someone for you...' in remote stream position (based on swap state) */}
               {(showSearching || (isFullyConnected && !remoteStreamReady)) &&
                 !isStreamSwapped && (
-                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20">
+                  <div className="absolute inset-0 bg-surface-dark/70 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-20">
                     <div className="loader"></div>
                     <p className="text-sm text-white/90 font-medium">
                       {showSearching
@@ -790,7 +790,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
               {(showSearching || (isFullyConnected && !remoteStreamReady)) &&
                 isStreamSwapped && (
                   <div
-                    className="absolute bg-gradient-to-br from-emerald-900/50 via-slate-900/80 to-amber-900/50 backdrop-blur-sm flex flex-col items-center justify-center gap-2"
+                    className="absolute bg-surface-dark/70 backdrop-blur-sm flex flex-col items-center justify-center gap-2"
                     style={{
                       bottom: "16px",
                       right: "16px",
@@ -881,7 +881,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 />
                 {/* Label when remote is in PiP */}
                 {isStreamSwapped && (
-                  <div className="absolute bottom-2 left-2 text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-emerald-500/30">
+                  <div className="absolute bottom-2 left-2 text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-white/15">
                     <Users size={10} /> {peer?.username ?? "Stranger"}
                   </div>
                 )}
@@ -893,7 +893,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                 onPointerMove={onSelfPointerMove}
                 onPointerUp={onSelfPointerUp}
                 onPointerCancel={onSelfPointerUp}
-                className="cursor-pointer hover:border-emerald-400/60 transition-all"
+                className="cursor-pointer hover:border-white/30 transition-all"
                 style={{
                   touchAction: "none",
                   userSelect: "none",
@@ -953,12 +953,12 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                     className="absolute inset-0 bg-black/90 flex items-center justify-center"
                     style={{ borderRadius: "12px" }}
                   >
-                    <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-8 h-8 border-2 border-white/50 border-t-transparent rounded-full animate-spin"></div>
                   </div>
                 )}
                 {/* Label */}
                 {!isStreamSwapped && (
-                  <div className="absolute bottom-2 left-2 text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-emerald-500/30">
+                  <div className="absolute bottom-2 left-2 text-white bg-black/60 backdrop-blur-md px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1 border border-white/15">
                     <User size={10} /> You
                   </div>
                 )}
@@ -966,7 +966,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
 
               {/* Label when remote is in main view */}
               {isFullyConnected && !isStreamSwapped && (
-                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border border-emerald-500/30 z-20">
+                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border border-white/15 z-20">
                   <Users size={14} />
                   <span>{peer?.username ?? "Stranger"}</span>
                 </div>
@@ -974,7 +974,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
 
               {/* Label when local is in main view */}
               {isStreamSwapped && (
-                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border border-emerald-500/30 z-20">
+                <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2 border border-white/15 z-20">
                   <User size={14} />
                   <span>You</span>
                 </div>
@@ -987,7 +987,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                   {status === "matched" ? (
                     <button
                       onClick={handleNext}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-white rounded-full transition-all shadow-lg font-medium text-sm"
+                      className="flex items-center gap-2 px-5 py-2.5 bg-white text-surface-dark hover:bg-white/90 text-white rounded-full transition-all shadow-lg font-medium text-sm"
                     >
                       <RotateCcw size={16} /> Next
                     </button>
@@ -995,7 +995,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                     <button
                       onClick={handleStart}
                       disabled={status === "searching"}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 text-white rounded-full transition-all shadow-lg font-medium text-sm disabled:opacity-60"
+                      className="flex items-center gap-2 px-5 py-2.5 bg-white text-surface-dark hover:bg-white/90 disabled:bg-white/30 text-white rounded-full transition-all shadow-lg font-medium text-sm disabled:opacity-60"
                     >
                       <RotateCcw size={16} />
                       {status === "searching" ? "Searching..." : "Start"}
@@ -1016,7 +1016,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                     className={`p-3 rounded-full transition-all shadow-lg backdrop-blur-md ${
                       isMuted
                         ? "bg-red-500/80"
-                        : "bg-black/60 border border-emerald-500/30 hover:bg-black/80"
+                        : "bg-black/60 border border-white/15 hover:bg-black/80"
                     }`}
                   >
                     {isMuted ? (
@@ -1031,7 +1031,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                     className={`p-3 rounded-full transition-all shadow-lg backdrop-blur-md ${
                       isVideoOff
                         ? "bg-red-500/80"
-                        : "bg-black/60 border border-emerald-500/30 hover:bg-black/80"
+                        : "bg-black/60 border border-white/15 hover:bg-black/80"
                     }`}
                   >
                     {isVideoOff ? (
@@ -1047,17 +1047,17 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
 
           {/* Right Sidebar - Chat - 3 columns */}
           <div className="col-span-3 h-full overflow-hidden">
-            <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-emerald-500/20 shadow-xl flex flex-col h-full w-full overflow-hidden">
+            <div className="bg-slate-900/60 backdrop-blur-xl rounded-2xl border border-white/10 shadow-xl flex flex-col h-full w-full overflow-hidden">
               {/* Chat Header */}
               <div className="p-4 border-b border-white/10 bg-black/20">
                 <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                  <MessageCircle size={16} className="text-emerald-400" />
+                  <MessageCircle size={16} className="text-white/80" />
                   Chat
                 </h3>
               </div>
 
               {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-emerald-500/20">
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-white/20">
                 {chatMessages.map((msg) => {
                   // if (msg.system) {
                   //   return (
@@ -1080,7 +1080,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                       <div
                         className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm font-medium ${
                           msg.self
-                            ? "bg-gradient-to-r from-emerald-500 to-amber-500 text-white"
+                            ? "bg-white text-surface-dark"
                             : "bg-white/10 text-white/90"
                         }`}
                       >
@@ -1106,12 +1106,12 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                       chatDisabled ? "Not connected" : "Type a message..."
                     }
                     disabled={chatDisabled}
-                    className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white placeholder-white/50 focus:border-emerald-400 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white placeholder-white/50 focus:border-white/40 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                   <button
                     type="submit"
                     disabled={chatDisabled || !inputMessage.trim()}
-                    className="p-2  bg-emerald-900 hover:from-emerald-600 hover:to-amber-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
+                    className="p-2 bg-white/10 hover:bg-white/20 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed transition"
                   >
                     <Send size={16} className="text-white" />
                   </button>
@@ -1138,7 +1138,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
             className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center transition-all shadow-lg ${
               isMuted
                 ? "bg-red-500/90 backdrop-blur-md"
-                : "bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20"
+                : "bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-white/10"
             }`}
           >
             {isMuted ? (
@@ -1151,11 +1151,11 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
           {/* Chat Button */}
           <button
             onClick={() => setIsChatOpen(!isChatOpen)}
-            className="w-12 h-12 flex-shrink-0 rounded-full bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20 flex items-center justify-center transition-all shadow-lg relative"
+            className="w-12 h-12 flex-shrink-0 rounded-full bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-white/10 flex items-center justify-center transition-all shadow-lg relative"
           >
             <MessageCircle size={20} className="text-white" />
             {chatMessages.length > 0 && !isChatOpen && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full text-[9px] font-bold flex items-center justify-center text-black">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full text-[9px] font-bold flex items-center justify-center text-surface-dark">
                 {chatMessages.filter((m) => !m.system && !m.self).length}
               </span>
             )}
@@ -1175,7 +1175,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
             className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center transition-all shadow-lg ${
               isVideoOff
                 ? "bg-red-500/90 backdrop-blur-md"
-                : "bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20"
+                : "bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-white/10"
             }`}
           >
             {isVideoOff ? (
@@ -1188,7 +1188,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
           {/* Switch Camera */}
           <button
             onClick={switchCamera}
-            className="w-12 h-12 flex-shrink-0 rounded-full bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-emerald-500/20 flex items-center justify-center transition-all shadow-lg"
+            className="w-12 h-12 flex-shrink-0 rounded-full bg-gray-800/80 backdrop-blur-md hover:bg-gray-700/80 border border-white/10 flex items-center justify-center transition-all shadow-lg"
           >
             <SwitchCamera size={20} className="text-white" />
           </button>
@@ -1197,7 +1197,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
           {status === "matched" ? (
             <button
               onClick={handleNext}
-              className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-white transition-all shadow-lg flex items-center justify-center"
+              className="w-12 h-12 flex-shrink-0 rounded-full bg-white text-surface-dark hover:bg-white/90 text-white transition-all shadow-lg flex items-center justify-center"
             >
               <RotateCcw size={20} />
             </button>
@@ -1205,7 +1205,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
             <button
               onClick={handleStart}
               disabled={status === "searching"}
-              className="w-12 h-12 flex-shrink-0 rounded-full bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 text-white transition-all shadow-lg flex items-center justify-center disabled:opacity-60"
+              className="w-12 h-12 flex-shrink-0 rounded-full bg-white text-surface-dark hover:bg-white/90 disabled:bg-white/30 text-white transition-all shadow-lg flex items-center justify-center disabled:opacity-60"
             >
               <RotateCcw size={20} />
             </button>
@@ -1220,13 +1220,13 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
           onClick={() => setIsChatOpen(false)}
         >
           <div
-            className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-900 to-slate-800 rounded-t-3xl border-t border-emerald-500/20 shadow-2xl max-h-[70vh] flex flex-col"
+            className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-slate-900 to-slate-800 rounded-t-3xl border-t border-white/10 shadow-2xl max-h-[70vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Chat Header */}
             <div className="flex items-center justify-between p-4 border-b border-white/10">
               <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                <MessageCircle size={20} className="text-emerald-400" />
+                <MessageCircle size={20} className="text-white/80" />
                 Chat
               </h3>
               <button
@@ -1269,7 +1269,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                       <div
                         className={`max-w-[80%] px-4 py-2.5 rounded-md text-sm font-medium ${
                           msg.self
-                            ? " bg-emerald-800  text-white"
+                            ? "bg-white text-surface-dark"
                             : "bg-white/10 text-white/90"
                         }`}
                       >
@@ -1295,12 +1295,12 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                     chatDisabled ? "Not connected" : "Type a message..."
                   }
                   disabled={chatDisabled}
-                  className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-emerald-400 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-white/40 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 />
                 <button
                   type="submit"
                   disabled={chatDisabled || !inputMessage.trim()}
-                  className="p-3 bg-emerald-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
+                  className="p-3 bg-white/10 hover:bg-white/20 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed transition"
                 >
                   <Send size={18} className="text-white" />
                 </button>
@@ -1343,7 +1343,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                     <div
                       className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-sm font-medium ${
                         msg.self
-                          ? "bg-gradient-to-r from-emerald-500 to-amber-500 text-white"
+                          ? "bg-white text-surface-dark"
                           : "bg-white/10 text-white/90"
                       }`}
                     >
@@ -1364,12 +1364,12 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
                   chatDisabled ? "Not connected" : "Send a message..."
                 }
                 disabled={chatDisabled}
-                className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-emerald-400 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/50 focus:border-white/40 focus:outline-none transition text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <button
                 type="submit"
                 disabled={chatDisabled || !inputMessage.trim()}
-                className="p-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
+                className="p-3 bg-white text-surface-dark hover:bg-white/90 rounded-xl hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed transition"
               >
                 <Send size={18} className="text-white" />
               </button>
@@ -1391,7 +1391,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
             {status === "matched" ? (
               <button
                 onClick={handleNext}
-                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 text-white rounded-full transition-all shadow-lg font-medium"
+                className="flex items-center gap-2 px-8 py-3 bg-white text-surface-dark hover:bg-white/90 text-white rounded-full transition-all shadow-lg font-medium"
               >
                 <RotateCcw size={20} /> Next
               </button>
@@ -1399,7 +1399,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
               <button
                 onClick={handleStart}
                 disabled={status === "searching"}
-                className="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-amber-500 hover:from-emerald-600 hover:to-amber-600 disabled:from-gray-700 disabled:to-gray-700 text-white rounded-full transition-all shadow-lg font-medium disabled:opacity-60"
+                className="flex items-center gap-2 px-8 py-3 bg-white text-surface-dark hover:bg-white/90 disabled:bg-white/30 text-white rounded-full transition-all shadow-lg font-medium disabled:opacity-60"
               >
                 <RotateCcw size={20} />
                 {status === "searching" ? "Searching..." : "Start"}
@@ -1414,7 +1414,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
               className={`p-5 rounded-full transition-all shadow-lg backdrop-blur-md ${
                 isMuted
                   ? "bg-red-500/80"
-                  : "bg-white/10 border border-emerald-500/30 hover:bg-white/20"
+                  : "bg-white/10 border border-white/15 hover:bg-white/20"
               }`}
             >
               {isMuted ? (
@@ -1429,7 +1429,7 @@ export default function VideoChatPage({ gender }: VideoChatPageProps) {
               className={`p-5 rounded-full transition-all shadow-lg backdrop-blur-md ${
                 isVideoOff
                   ? "bg-red-500/80"
-                  : "bg-white/10 border border-emerald-500/30 hover:bg-white/20"
+                  : "bg-white/10 border border-white/15 hover:bg-white/20"
               }`}
             >
               {isVideoOff ? (

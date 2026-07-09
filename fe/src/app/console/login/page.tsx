@@ -50,11 +50,11 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
+    <div className="flex min-h-screen items-center justify-center bg-muted">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-            <ShieldCheck className="h-6 w-6 text-blue-600" />
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-accent">
+            <ShieldCheck className="h-6 w-6 text-foreground" />
           </div>
           <CardTitle className="text-2xl font-bold">Admin Console</CardTitle>
           <CardDescription>

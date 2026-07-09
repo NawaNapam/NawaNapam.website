@@ -87,14 +87,14 @@ export default function CompleteProfile() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a140a] to-[#1b2b1b] p-4">
-      <div className="w-full max-w-md bg-white/10 backdrop-blur-sm border border-amber-500/30 rounded-2xl shadow-2xl p-6 sm:p-8 animate-in fade-in-0 slide-in-from-bottom-4 duration-500">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <div className="w-full max-w-md bg-card border border-border rounded-lg p-6 sm:p-8">
         <div className="text-center mb-6">
-          <User className="mx-auto h-10 w-10 text-amber-400 mb-3" />
-          <h1 className="text-2xl sm:text-3xl font-bold text-amber-300 mb-2">
+          <User className="mx-auto h-10 w-10 text-signature-coral mb-3" />
+          <h1 className="text-2xl sm:text-3xl font-medium text-foreground mb-2">
             Complete Your Profile
           </h1>
-          <p className="text-amber-200/70 text-sm">
+          <p className="text-body text-sm">
             Add your details to get started
           </p>
         </div>
@@ -103,14 +103,14 @@ export default function CompleteProfile() {
           <div>
             <Label
               htmlFor="phone"
-              className="text-amber-200 flex items-center gap-2 mb-2 text-sm font-medium"
+              className="text-body flex items-center gap-2 mb-2 text-sm font-medium"
             >
               <Phone className="h-4 w-4" />
               Phone Number
             </Label>
             <div className="flex gap-2">
               <Select value={countryCode} onValueChange={setCountryCode}>
-                <SelectTrigger className="w-20 sm:w-24 h-9 sm:h-9 bg-white/10 border-amber-500/30 text-amber-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-lg flex items-center">
+                <SelectTrigger className="w-20 sm:w-24 h-11 flex items-center">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -124,7 +124,7 @@ export default function CompleteProfile() {
                 placeholder="1234567890"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className="flex-1 h-8 sm:h-9 bg-white/10 border-amber-500/30 text-amber-50 placeholder-amber-200/50 focus:border-amber-400 focus:ring-amber-400/20 rounded-lg"
+                className="flex-1"
               />
             </div>
           </div>
@@ -132,13 +132,13 @@ export default function CompleteProfile() {
           <div>
             <Label
               htmlFor="gender"
-              className="text-amber-200 flex items-center gap-2 mb-2 text-sm font-medium"
+              className="text-body flex items-center gap-2 mb-2 text-sm font-medium"
             >
               <User className="h-4 w-4" />
               Gender
             </Label>
             <Select value={gender} onValueChange={setGender}>
-              <SelectTrigger className="w-full h-10 sm:h-11 bg-white/10 border-amber-500/30 text-amber-200 focus:border-amber-400 focus:ring-amber-400/20 rounded-lg">
+              <SelectTrigger className="w-full h-11">
                 <SelectValue placeholder="Select your gender" />
               </SelectTrigger>
               <SelectContent>
@@ -149,14 +149,10 @@ export default function CompleteProfile() {
             </Select>
           </div>
 
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full h-11 sm:h-12 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold text-base rounded-lg shadow-xl hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-amber-400/50 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button type="submit" disabled={loading} className="w-full" size="lg">
             {loading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black mr-2"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
                 Updating...
               </>
             ) : (

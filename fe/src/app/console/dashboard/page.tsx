@@ -87,32 +87,32 @@ export default function AdminDashboard() {
       value: stats?.totalUsers || 0,
       subtitle: `${stats?.activeUsers || 0} active`,
       icon: Users,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
+      color: "text-foreground",
+      bgColor: "bg-muted",
     },
     {
       title: "Chat Rooms",
       value: stats?.totalRooms || 0,
       subtitle: `${stats?.activeRooms || 0} active`,
       icon: MessageSquare,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
+      color: "text-foreground",
+      bgColor: "bg-muted",
     },
     {
       title: "Reports",
       value: stats?.totalReports || 0,
       subtitle: `${stats?.pendingReports || 0} pending`,
       icon: AlertTriangle,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-100",
+      color: "text-foreground",
+      bgColor: "bg-muted",
     },
     {
       title: "Banned Users",
       value: stats?.bannedUsers || 0,
       subtitle: "Total banned",
       icon: ShieldAlert,
-      color: "text-red-600",
-      bgColor: "bg-red-100",
+      color: "text-destructive",
+      bgColor: "bg-destructive/10",
     },
   ];
 
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
     <div className="p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-gray-600">Welcome to the admin console</p>
+        <p className="text-muted-foreground">Welcome to the admin console</p>
       </div>
 
       {/* Stats Cards */}
@@ -130,7 +130,7 @@ export default function AdminDashboard() {
           return (
             <Card key={stat.title}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
                   {stat.title}
                 </CardTitle>
                 <div className={`rounded-full p-2 ${stat.bgColor}`}>
@@ -139,7 +139,7 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{stat.value}</div>
-                <p className="text-sm text-gray-500">{stat.subtitle}</p>
+                <p className="text-sm text-muted-foreground">{stat.subtitle}</p>
               </CardContent>
             </Card>
           );
@@ -154,7 +154,7 @@ export default function AdminDashboard() {
               <span>Recent Reports</span>
               <Link
                 href="/console/reports"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-link hover:underline"
               >
                 View all
               </Link>
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               {recentReports.length === 0 ? (
-                <p className="text-sm text-gray-500">No reports yet</p>
+                <p className="text-sm text-muted-foreground">No reports yet</p>
               ) : (
                 recentReports.slice(0, 5).map((report) => (
                   <div
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                   >
                     <div className="flex-1">
                       <p className="text-sm font-medium">{report.reason}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         By {report.reporter.username || report.reporter.email}
                       </p>
                     </div>
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
               <span>Recent Users</span>
               <Link
                 href="/console/users"
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-link hover:underline"
               >
                 View all
               </Link>
@@ -208,7 +208,7 @@ export default function AdminDashboard() {
           <CardContent>
             <div className="space-y-4">
               {recentUsers.length === 0 ? (
-                <p className="text-sm text-gray-500">No users yet</p>
+                <p className="text-sm text-muted-foreground">No users yet</p>
               ) : (
                 recentUsers.slice(0, 5).map((user) => (
                   <div
@@ -219,7 +219,7 @@ export default function AdminDashboard() {
                       <p className="text-sm font-medium">
                         {user.username || user.email}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </p>
                     </div>

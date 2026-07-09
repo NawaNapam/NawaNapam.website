@@ -117,7 +117,7 @@ export default function ReportsPage() {
         return <Badge variant="secondary">Reviewed</Badge>;
       case "ACTION_TAKEN":
         return (
-          <Badge className="bg-green-600 hover:bg-green-700">
+          <Badge variant="outline" className="border-success-border text-success">
             Action Taken
           </Badge>
         );
@@ -154,7 +154,7 @@ export default function ReportsPage() {
     <div className="p-4 sm:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold sm:text-3xl">Reports Management</h1>
-        <p className="text-sm text-gray-600 sm:text-base">
+        <p className="text-sm text-muted-foreground sm:text-base">
           Review and manage user reports
         </p>
       </div>
@@ -201,7 +201,7 @@ export default function ReportsPage() {
                         <div className="font-medium">
                           {getUserDisplay(report.reporter)}
                         </div>
-                        <div className="text-gray-500">
+                        <div className="text-muted-foreground">
                           {report.reporter.email}
                         </div>
                       </div>
@@ -218,7 +218,7 @@ export default function ReportsPage() {
                             </Badge>
                           )}
                         </div>
-                        <div className="text-gray-500">
+                        <div className="text-muted-foreground">
                           {report.reportedUser.email}
                         </div>
                       </div>
@@ -226,7 +226,7 @@ export default function ReportsPage() {
                     <TableCell>
                       <div className="max-w-xs">
                         <div className="font-medium">{report.reason}</div>
-                        <div className="text-sm text-gray-500 line-clamp-2">
+                        <div className="text-sm text-muted-foreground line-clamp-2">
                           {report.message}
                         </div>
                       </div>
@@ -290,7 +290,7 @@ export default function ReportsPage() {
                   <div className="mb-3 flex items-start justify-between">
                     <div className="flex-1">
                       <div className="mb-1 font-medium">{report.reason}</div>
-                      <div className="text-sm text-gray-600 line-clamp-2">
+                      <div className="text-sm text-muted-foreground line-clamp-2">
                         {report.message}
                       </div>
                     </div>
@@ -299,13 +299,13 @@ export default function ReportsPage() {
 
                   <div className="mb-3 space-y-2 text-sm">
                     <div>
-                      <span className="text-gray-500">Reporter: </span>
+                      <span className="text-muted-foreground">Reporter: </span>
                       <span className="font-medium">
                         {getUserDisplay(report.reporter)}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-500">Reported: </span>
+                      <span className="text-muted-foreground">Reported: </span>
                       <span className="font-medium">
                         {getUserDisplay(report.reportedUser)}
                       </span>
@@ -315,7 +315,7 @@ export default function ReportsPage() {
                         </Badge>
                       )}
                     </div>
-                    <div className="text-gray-500">
+                    <div className="text-muted-foreground">
                       {new Date(report.createdAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -370,8 +370,8 @@ export default function ReportsPage() {
           </div>
 
           {reports.length === 0 && (
-            <div className="py-12 text-center text-gray-500">
-              <AlertTriangle className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+            <div className="py-12 text-center text-muted-foreground">
+              <AlertTriangle className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
               <p>No reports found</p>
             </div>
           )}
@@ -389,7 +389,7 @@ export default function ReportsPage() {
                 <span className="hidden sm:inline">Previous</span>
               </Button>
 
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 Page {page} of {totalPages}
               </span>
 

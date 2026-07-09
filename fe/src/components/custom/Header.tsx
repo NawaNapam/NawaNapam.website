@@ -4,18 +4,47 @@ import Link from "next/link";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { useAuthStore } from "@/stores/authStore";
-import { X, LogOut, Settings, LayoutDashboard, Download } from "lucide-react";
+import {
+  X,
+  LogOut,
+  Settings,
+  LayoutDashboard,
+  Download,
+  Sun,
+  Moon,
+} from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 }
 
+function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) {
+    return <div className="size-10 rounded-full" />;
+  }
+
+  const isDark = resolvedTheme === "dark";
+  return (
+    <button
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      aria-label="Toggle theme"
+      className="flex size-10 items-center justify-center rounded-full border border-border text-foreground transition-colors hover:bg-accent"
+    >
+      {isDark ? <Sun size={18} /> : <Moon size={18} />}
+    </button>
+  );
+}
+
 export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [_mobileMenuOpen, _setMobileMenuOpen] = useState(false);
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(true);
@@ -25,7 +54,6 @@ export default function Header() {
 
   // PWA Install Detection
   useEffect(() => {
-    // Check if already installed
     const standalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as { standalone?: boolean }).standalone ||
@@ -49,7 +77,6 @@ export default function Header() {
   }, []);
 
   const handleInstallClick = async () => {
-    // Check if it's iOS
     const isIOS =
       /iPad|iPhone|iPod/.test(navigator.userAgent) &&
       !(window as { MSStream?: unknown }).MSStream;
@@ -79,7 +106,6 @@ export default function Header() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      // Check if click is outside the dropdown and button
       if (
         !target.closest(".profile-dropdown") &&
         !target.closest(".profile-button")
@@ -97,7 +123,7 @@ export default function Header() {
     };
   }, [dropdownOpen]);
 
-  // Close sidebar when clicking outside
+  // Lock body scroll when mobile sidebar is open
   useEffect(() => {
     if (sidebarOpen) {
       document.body.style.overflow = "hidden";
@@ -111,11 +137,11 @@ export default function Header() {
 
   if (isLoading) {
     return (
-      <header className="fixed top-0 inset-x-0 z-50 bg-white/5 backdrop-blur-xl border-b border-amber-500/20">
-        <div className="container h-16 flex items-center justify-between px-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-amber-600/20 rounded-full animate-pulse" />
-            <div className="h-7 w-40 bg-amber-500/10 rounded animate-pulse" />
+      <header className="fixed top-0 inset-x-0 z-50 h-16 bg-background border-b border-border flex items-center">
+        <div className="container mx-auto h-16 flex items-center justify-between px-4">
+          <div className="flex items-center gap-3">
+            <div className="size-9 bg-muted rounded-full animate-pulse" />
+            <div className="h-5 w-32 bg-muted rounded animate-pulse" />
           </div>
         </div>
       </header>
@@ -127,17 +153,14 @@ export default function Header() {
       {/* Dropdown Portal */}
       {dropdownOpen && (
         <div className="profile-dropdown fixed top-20 right-4 sm:right-6 xl:right-25 w-64 z-50">
-          <div className="origin-top-right rounded-md bg-black backdrop-blur-2xl border border-amber-500/30 shadow-2xl overflow-hidden">
-            <div className="p-4 border-b border-amber-500/20">
-              <p
-                className="text-sm font-bold text-amber-100"
-                style={{ fontFamily: "serif" }}
-              >
+          <div className="origin-top-right rounded-lg bg-popover border border-border shadow-lg overflow-hidden">
+            <div className="p-4 border-b border-border">
+              <p className="text-sm font-medium text-foreground">
                 {user!.username?.toLowerCase() ||
                   user!.name?.split(" ")[0]?.toLowerCase() ||
                   "not set"}
               </p>
-              <p className="text-xs text-amber-300 truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {user!.email}
               </p>
             </div>
@@ -145,7 +168,7 @@ export default function Header() {
               <Link
                 href="/dashboard"
                 onClick={() => setDropdownOpen(false)}
-                className="flex items-center gap-3 px-5 py-3 text-amber-100 hover:bg-amber-500/10 transition-colors"
+                className="flex items-center gap-3 px-5 py-3 text-foreground hover:bg-accent transition-colors"
               >
                 <LayoutDashboard size={18} />
                 Dashboard
@@ -153,16 +176,16 @@ export default function Header() {
               <Link
                 href="/settings"
                 onClick={() => setDropdownOpen(false)}
-                className="flex items-center gap-3 px-5 py-3 text-amber-100 hover:bg-amber-500/10 transition-colors"
+                className="flex items-center gap-3 px-5 py-3 text-foreground hover:bg-accent transition-colors"
               >
                 <Settings size={18} />
                 Settings
               </Link>
             </div>
-            <div className="border-t border-amber-500/20 pt-2">
+            <div className="border-t border-border pt-2">
               <button
                 onClick={() => signOut({ callbackUrl: "/" })}
-                className="flex w-full items-center gap-3 px-5 py-3 text-rose-400 hover:bg-rose-500/10 transition-colors"
+                className="flex w-full items-center gap-3 px-5 py-3 text-destructive hover:bg-accent transition-colors"
               >
                 <LogOut size={18} />
                 Logout
@@ -172,68 +195,59 @@ export default function Header() {
         </div>
       )}
 
-      <header className="fixed top-0 inset-x-0 z-50 bg-gradient-to-b from-black/40 via-[#0f1a0f]/90 to-transparent backdrop-blur-2xl border-b border-amber-500/20 flex items-center justify-center">
-        <div className="container h-16 flex items-center justify-between px-4 sm:px-6">
+      <header className="fixed top-0 inset-x-0 z-50 h-16 bg-background border-b border-border flex items-center">
+        <div className="container mx-auto h-16 flex items-center justify-between px-4 sm:px-6">
           {/* Logo + Brand Name */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-amber-500/40 shadow-lg transition-all group-hover:ring-amber-400 group-hover:scale-110">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="size-9 rounded-full overflow-hidden border border-border">
               <Image
                 src="/images/logo.jpg"
                 alt="NawaNapam"
-                width={40}
-                height={40}
+                width={36}
+                height={36}
                 className="object-cover"
               />
             </div>
-            <span
-              className="text-xl font-bold tracking-wide"
-              style={{ fontFamily: "var(--font-cinzel), serif" }}
-            >
-              <span className="bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-300 bg-clip-text text-transparent">
-                NawaNapam
-              </span>
+            <span className="text-lg font-medium tracking-tight text-foreground">
+              NawaNapam
             </span>
           </Link>
 
           {/* Right Side */}
-          <div className="flex items-center gap-4">
-            {/* Authenticated User */}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+
             {isAuthenticated && user ? (
               <>
                 {/* Desktop Dropdown */}
                 <div className="hidden sm:block relative">
                   <button
                     onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="profile-button flex items-center gap-3 p-2 rounded-full hover:bg-white/10 transition-all group"
+                    className="profile-button flex items-center gap-3 p-1 rounded-full border border-border hover:bg-accent transition-colors"
                   >
-                    <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-amber-500/50 shadow-md group-hover:ring-amber-400">
+                    <div className="size-8 rounded-full overflow-hidden">
                       <Image
                         src={user.image || "/images/default-avatar.png"}
                         alt="User"
-                        width={36}
-                        height={36}
+                        width={32}
+                        height={32}
                         className="object-cover"
                       />
                     </div>
-                    {/* <span className="text-sm font-medium text-amber-100">
-                      {user.username || user.name?.split(" ")[0] || "Not set"}
-                    </span> */}
                   </button>
-
-
                 </div>
 
                 {/* Mobile User Avatar */}
                 <button
                   onClick={() => setSidebarOpen(true)}
-                  className="sm:hidden flex items-center gap-2 p-1.5 rounded-full hover:bg-white/10 transition-all"
+                  className="sm:hidden flex items-center gap-2 p-1 rounded-full border border-border hover:bg-accent transition-colors"
                 >
-                  <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-amber-500/50 shadow-md">
+                  <div className="size-8 rounded-full overflow-hidden">
                     <Image
                       src={user.image || "/images/default-avatar.png"}
                       alt="User"
-                      width={36}
-                      height={36}
+                      width={32}
+                      height={32}
                       className="object-cover"
                     />
                   </div>
@@ -244,20 +258,20 @@ export default function Header() {
               <div className="flex items-center gap-3">
                 <Link
                   href="/login"
-                  className="hidden sm:inline-flex h-10 px-6 rounded-md text-sm font-medium text-amber-100 border border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/10 transition-all items-center"
+                  className="hidden sm:inline-flex h-10 px-5 rounded-lg text-sm font-medium text-foreground border border-border hover:bg-accent transition-colors items-center"
                 >
                   Login
                 </Link>
                 <Link
                   href="/signup"
-                  className="hidden sm:inline-flex h-10 px-6 rounded-md text-sm font-bold bg-gradient-to-r from-amber-500 to-yellow-600 text-black shadow-lg items-center"
+                  className="hidden sm:inline-flex h-10 px-5 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors items-center"
                 >
                   Join Now
                 </Link>
-                {/* Mobile Login/Signup */}
+                {/* Mobile Login */}
                 <Link
                   href="/login"
-                  className="sm:hidden h-9 px-4 rounded-md text-sm font-medium text-amber-100 border border-amber-500/40 hover:border-amber-400 hover:bg-amber-500/10 transition-all inline-flex items-center"
+                  className="sm:hidden h-9 px-4 rounded-lg text-sm font-medium text-foreground border border-border hover:bg-accent transition-colors inline-flex items-center"
                 >
                   Login
                 </Link>
@@ -270,109 +284,96 @@ export default function Header() {
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] sm:hidden"
+          className="fixed inset-0 bg-black/40 z-60 sm:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Mobile Sidebar */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 bg-gradient-to-b from-[#0a0a0a] to-[#1a1a1a] border-l border-amber-500/20 shadow-2xl z-[70] sm:hidden transform transition-transform duration-300 ease-in-out flex flex-col ${
+        className={`fixed top-0 right-0 h-full w-80 bg-background border-l border-border shadow-lg z-70 sm:hidden transform transition-transform duration-300 ease-in-out flex flex-col ${
           sidebarOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between p-4 border-b border-amber-500/20">
-          <h2 className="text-lg font-bold text-amber-100">Menu</h2>
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-lg font-medium text-foreground">Menu</h2>
           <button
             onClick={() => setSidebarOpen(false)}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            className="p-2 rounded-full hover:bg-accent transition-colors"
           >
-            <X size={20} className="text-amber-100" />
+            <X size={20} className="text-foreground" />
           </button>
         </div>
 
         {/* User Info */}
         {isAuthenticated && user && (
-          <div className="p-6 border-b border-amber-500/20">
+          <div className="p-6 border-b border-border">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-amber-500/50 shadow-lg">
+              <div className="size-14 rounded-full overflow-hidden border border-border">
                 <Image
                   src={user.image || "/images/default-avatar.png"}
                   alt="User"
-                  width={64}
-                  height={64}
+                  width={56}
+                  height={56}
                   className="object-cover"
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <p
-                  className="text-base font-bold text-amber-100 truncate"
-                  style={{ fontFamily: "serif" }}
-                >
+                <p className="text-base font-medium text-foreground truncate">
                   {user.username?.toLowerCase() ||
                     user.name?.split(" ")[0]?.toLowerCase() ||
                     "not set"}
                 </p>
-                <p className="text-sm text-amber-300 truncate">{user.email}</p>
+                <p className="text-sm text-muted-foreground truncate">
+                  {user.email}
+                </p>
               </div>
             </div>
           </div>
         )}
 
         {/* Navigation Links */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <Link
             href="/dashboard"
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-4 px-4 py-4 text-amber-100 hover:bg-amber-500/10 rounded-lg transition-colors group"
+            className="flex items-center gap-4 px-4 py-3 text-foreground hover:bg-accent rounded-lg transition-colors"
           >
-            <LayoutDashboard
-              size={22}
-              className="text-amber-400 group-hover:text-amber-300"
-            />
-            <span className="text-base font-medium">Dashboard</span>
+            <LayoutDashboard size={20} />
+            <span className="text-base">Dashboard</span>
           </Link>
           <Link
             href="/settings"
             onClick={() => setSidebarOpen(false)}
-            className="flex items-center gap-4 px-4 py-4 text-amber-100 hover:bg-amber-500/10 rounded-lg transition-colors group"
+            className="flex items-center gap-4 px-4 py-3 text-foreground hover:bg-accent rounded-lg transition-colors"
           >
-            <Settings
-              size={22}
-              className="text-amber-400 group-hover:text-amber-300"
-            />
-            <span className="text-base font-medium">Settings</span>
+            <Settings size={20} />
+            <span className="text-base">Settings</span>
           </Link>
 
-          {/* PWA Install Button */}
           {showInstallPrompt && !isStandalone && (
             <button
               onClick={handleInstallClick}
-              className="flex items-center gap-4 px-4 py-4 text-amber-100 hover:bg-amber-500/10 rounded-lg transition-colors group w-full"
+              className="flex items-center gap-4 px-4 py-3 text-foreground hover:bg-accent rounded-lg transition-colors w-full"
             >
-              <Download
-                size={22}
-                className="text-amber-400 group-hover:text-amber-300"
-              />
-              <div className="flex flex-col items-start">
-                <span className="text-base font-medium">Install App</span>
-              </div>
+              <Download size={20} />
+              <span className="text-base">Install App</span>
             </button>
           )}
         </nav>
 
         {/* Logout Button at Bottom */}
-        <div className="mt-auto p-4 border-t border-amber-500/20">
+        <div className="mt-auto p-4 border-t border-border">
           <button
             onClick={() => {
               setSidebarOpen(false);
               signOut({ callbackUrl: "/" });
             }}
-            className="flex w-full items-center gap-4 px-4 py-4 text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors group"
+            className="flex w-full items-center gap-4 px-4 py-3 text-destructive hover:bg-accent rounded-lg transition-colors"
           >
-            <LogOut size={22} className="group-hover:text-rose-300" />
-            <span className="text-base font-medium">Logout</span>
+            <LogOut size={20} />
+            <span className="text-base">Logout</span>
           </button>
         </div>
       </div>
