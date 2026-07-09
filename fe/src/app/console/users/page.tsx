@@ -207,7 +207,7 @@ export default function UsersPage() {
     <div className="p-4 sm:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold sm:text-3xl">User Management</h1>
-        <p className="text-sm text-gray-600 sm:text-base">
+        <p className="text-sm text-muted-foreground sm:text-base">
           View and manage platform users
         </p>
       </div>
@@ -264,7 +264,7 @@ export default function UsersPage() {
                         <div className="font-medium">
                           {user.username || user.name || "Anonymous"}
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-muted-foreground">
                           {user.email}
                         </div>
                       </div>
@@ -272,12 +272,12 @@ export default function UsersPage() {
                     <TableCell>
                       <div className="text-sm">
                         {user.phoneNumber ? (
-                          <div className="flex items-center gap-1 text-gray-600">
+                          <div className="flex items-center gap-1 text-muted-foreground">
                             <Phone className="h-3 w-3" />
                             <span>{user.phoneNumber}</span>
                           </div>
                         ) : (
-                          <span className="text-gray-400">No phone</span>
+                          <span className="text-muted-foreground">No phone</span>
                         )}
                       </div>
                     </TableCell>
@@ -297,7 +297,7 @@ export default function UsersPage() {
                     <TableCell>
                       <div className="text-sm">
                         <div>{user._count.participants} rooms</div>
-                        <div className="text-gray-500">
+                        <div className="text-muted-foreground">
                           {user._count.reportsAgainst} reports
                         </div>
                       </div>
@@ -384,9 +384,9 @@ export default function UsersPage() {
                     <div className="font-medium">
                       {user.username || user.name || "Anonymous"}
                     </div>
-                    <div className="text-sm text-gray-500">{user.email}</div>
+                    <div className="text-sm text-muted-foreground">{user.email}</div>
                     {user.phoneNumber && (
-                      <div className="mt-1 flex items-center gap-1 text-sm text-gray-600">
+                      <div className="mt-1 flex items-center gap-1 text-sm text-muted-foreground">
                         <Phone className="h-3 w-3" />
                         <span>{user.phoneNumber}</span>
                       </div>
@@ -403,7 +403,7 @@ export default function UsersPage() {
                     )}
                   </div>
 
-                  <div className="mb-3 text-sm text-gray-600">
+                  <div className="mb-3 text-sm text-muted-foreground">
                     <div>{user._count.participants} rooms joined</div>
                     <div>{user._count.reportsAgainst} reports</div>
                     <div>
@@ -496,7 +496,7 @@ export default function UsersPage() {
                 <span className="hidden sm:inline">Previous</span>
               </Button>
 
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 Page {page} of {totalPages}
               </span>
 
@@ -528,7 +528,7 @@ export default function UsersPage() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmDialog.action === "delete" ? (
-                <span className="text-red-600 font-semibold">
+                <span className="text-destructive font-semibold">
                   Are you sure you want to permanently delete{" "}
                   {confirmDialog.username}? This action cannot be undone and
                   will remove all user data.
@@ -552,7 +552,7 @@ export default function UsersPage() {
               className={
                 confirmDialog.action === "ban" ||
                 confirmDialog.action === "delete"
-                  ? "bg-red-600 hover:bg-red-700"
+                  ? "bg-destructive text-white hover:bg-destructive/90"
                   : ""
               }
             >
@@ -575,31 +575,31 @@ export default function UsersPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Username
                   </label>
                   <p className="mt-1">{selectedUser.username || "N/A"}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Name
                   </label>
                   <p className="mt-1">{selectedUser.name || "N/A"}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Email
                   </label>
                   <p className="mt-1">{selectedUser.email}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Phone Number
                   </label>
                   <p className="mt-1 flex items-center gap-2">
                     {selectedUser.phoneNumber ? (
                       <>
-                        <Phone className="h-4 w-4 text-gray-500" />
+                        <Phone className="h-4 w-4 text-muted-foreground" />
                         {selectedUser.phoneNumber}
                       </>
                     ) : (
@@ -608,7 +608,7 @@ export default function UsersPage() {
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Gender
                   </label>
                   <p className="mt-1 capitalize">
@@ -616,7 +616,7 @@ export default function UsersPage() {
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Joined
                   </label>
                   <p className="mt-1">
@@ -650,21 +650,21 @@ export default function UsersPage() {
               <div className="pt-4 border-t">
                 <h3 className="text-sm font-medium mb-3">Activity Summary</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Rooms Joined</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                  <div className="p-3 bg-muted rounded-lg border border-border">
+                    <p className="text-sm text-muted-foreground">Rooms Joined</p>
+                    <p className="text-2xl font-bold text-foreground">
                       {selectedUser._count.participants}
                     </p>
                   </div>
-                  <div className="p-3 bg-green-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Reports Made</p>
-                    <p className="text-2xl font-bold text-green-600">
+                  <div className="p-3 bg-muted rounded-lg border border-border">
+                    <p className="text-sm text-muted-foreground">Reports Made</p>
+                    <p className="text-2xl font-bold text-foreground">
                       {selectedUser._count.reportsMade}
                     </p>
                   </div>
-                  <div className="p-3 bg-red-50 rounded-lg">
-                    <p className="text-sm text-gray-600">Reports Against</p>
-                    <p className="text-2xl font-bold text-red-600">
+                  <div className="p-3 bg-destructive/10 rounded-lg border border-border">
+                    <p className="text-sm text-muted-foreground">Reports Against</p>
+                    <p className="text-2xl font-bold text-destructive">
                       {selectedUser._count.reportsAgainst}
                     </p>
                   </div>

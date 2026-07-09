@@ -55,13 +55,13 @@ export default function SettingsPage() {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case "SUPER_ADMIN":
-        return "bg-purple-100 text-purple-800 border-purple-200";
+        return "border-primary text-primary bg-primary/5";
       case "ADMIN":
-        return "bg-blue-100 text-blue-800 border-blue-200";
+        return "border-link text-link bg-link/5";
       case "MODERATOR":
-        return "bg-green-100 text-green-800 border-green-200";
+        return "border-success-border text-success bg-success/5";
       default:
-        return "bg-gray-100 text-gray-800 border-gray-200";
+        return "border-border text-foreground bg-muted";
     }
   };
 
@@ -69,18 +69,10 @@ export default function SettingsPage() {
     return (
       <div className="p-4 sm:p-8">
         <Skeleton className="mb-6 h-10 w-48" />
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-32" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <Skeleton key={i} className="h-20 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <Skeleton className="h-64 w-full lg:col-span-2" />
+          <Skeleton className="h-64 w-full" />
+        </div>
       </div>
     );
   }
@@ -89,113 +81,144 @@ export default function SettingsPage() {
     <div className="p-4 sm:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold sm:text-3xl">Settings</h1>
-        <p className="text-sm text-gray-600 sm:text-base">
+        <p className="text-sm text-muted-foreground sm:text-base">
           Manage admin users and system settings
         </p>
       </div>
 
-      {/* Admin Management */}
-      <Card>
-        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Admin Users
-            </CardTitle>
-            <CardDescription>Manage administrator accounts</CardDescription>
-          </div>
-          {isSuperAdmin && (
-            <Link href="/console/settings/add-admin">
-              <Button className="w-full sm:w-auto">
-                <UserPlus className="mr-2 h-4 w-4" />
-                Add Admin
-              </Button>
-            </Link>
-          )}
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {admins.map((adminUser) => (
-              <div
-                key={adminUser.id}
-                className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex-1">
-                  <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <span className="font-medium">
-                      {adminUser.name || adminUser.email}
-                    </span>
-                    <Badge
-                      variant="outline"
-                      className={getRoleBadgeColor(adminUser.role)}
-                    >
-                      {adminUser.role.replace("_", " ")}
-                    </Badge>
-                    {!adminUser.isActive && (
-                      <Badge variant="destructive">Inactive</Badge>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    <div>{adminUser.email}</div>
-                    <div className="text-xs">
-                      {adminUser.lastLoginAt
-                        ? `Last login: ${new Date(adminUser.lastLoginAt).toLocaleDateString()}`
-                        : "Never logged in"}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:auto-rows-fr">
+        {/* Admin Management — large tile */}
+        <Card className="lg:col-span-2 lg:row-span-2">
+          <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Admin Users
+              </CardTitle>
+              <CardDescription>Manage administrator accounts</CardDescription>
+            </div>
+            {isSuperAdmin && (
+              <Link href="/console/settings/add-admin">
+                <Button className="w-full sm:w-auto">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Add Admin
+                </Button>
+              </Link>
+            )}
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {admins.map((adminUser) => (
+                <div
+                  key={adminUser.id}
+                  className="flex flex-col gap-3 rounded-lg border p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div className="flex-1">
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      <span className="font-medium">
+                        {adminUser.name || adminUser.email}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={getRoleBadgeColor(adminUser.role)}
+                      >
+                        {adminUser.role.replace("_", " ")}
+                      </Badge>
+                      {!adminUser.isActive && (
+                        <Badge variant="destructive">Inactive</Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <div>{adminUser.email}</div>
+                      <div className="text-xs">
+                        {adminUser.lastLoginAt
+                          ? `Last login: ${new Date(adminUser.lastLoginAt).toLocaleDateString()}`
+                          : "Never logged in"}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="text-xs text-gray-500 sm:text-right">
-                  Added {new Date(adminUser.createdAt).toLocaleDateString()}
+                  <div className="text-xs text-muted-foreground sm:text-right">
+                    Added {new Date(adminUser.createdAt).toLocaleDateString()}
+                  </div>
                 </div>
+              ))}
+
+              {admins.length === 0 && (
+                <p className="text-center text-sm text-muted-foreground">
+                  No admin users found
+                </p>
+              )}
+            </div>
+
+            {!isSuperAdmin && (
+              <div className="mt-4 rounded-lg border border-border bg-muted p-4">
+                <p className="text-sm text-muted-foreground">
+                  Only super admins can add or manage admin users.
+                </p>
               </div>
-            ))}
-
-            {admins.length === 0 && (
-              <p className="text-center text-sm text-gray-500">
-                No admin users found
-              </p>
             )}
-          </div>
+          </CardContent>
+        </Card>
 
-          {!isSuperAdmin && (
-            <div className="mt-4 rounded-lg bg-blue-50 p-4">
-              <p className="text-sm text-blue-800">
-                Only super admins can add or manage admin users.
-              </p>
+        {/* Current Session Info — side tile */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Account</CardTitle>
+            <CardDescription>Current session information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Email:</span>
+                <span className="font-medium">{admin?.email}</span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-muted-foreground">Name:</span>
+                <span className="font-medium">{admin?.name || "Not set"}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Role:</span>
+                <Badge
+                  variant="outline"
+                  className={admin ? getRoleBadgeColor(admin.role) : ""}
+                >
+                  {admin?.role.replace("_", " ")}
+                </Badge>
+              </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Current Session Info */}
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Your Account</CardTitle>
-          <CardDescription>Current session information</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-gray-600">Email:</span>
-              <span className="font-medium">{admin?.email}</span>
+        {/* Role summary — side tile filling the puzzle gap */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Admin Breakdown</CardTitle>
+            <CardDescription>Accounts by role</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-sm">
+              {["SUPER_ADMIN", "ADMIN", "MODERATOR"].map((role) => {
+                const count = admins.filter((a) => a.role === role).length;
+                return (
+                  <div
+                    key={role}
+                    className="flex items-center justify-between"
+                  >
+                    <Badge
+                      variant="outline"
+                      className={getRoleBadgeColor(role)}
+                    >
+                      {role.replace("_", " ")}
+                    </Badge>
+                    <span className="font-medium">{count}</span>
+                  </div>
+                );
+              })}
             </div>
-            <div className="flex justify-between border-b pb-2">
-              <span className="text-gray-600">Name:</span>
-              <span className="font-medium">{admin?.name || "Not set"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Role:</span>
-              <Badge
-                variant="outline"
-                className={admin ? getRoleBadgeColor(admin.role) : ""}
-              >
-                {admin?.role.replace("_", " ")}
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

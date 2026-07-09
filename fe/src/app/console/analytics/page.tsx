@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -148,7 +149,7 @@ export default function AnalyticsPage() {
           <h1 className="text-2xl font-bold sm:text-3xl">
             Analytics Dashboard
           </h1>
-          <p className="text-sm text-gray-600 sm:text-base">
+          <p className="text-sm text-muted-foreground sm:text-base">
             Platform insights and statistics
           </p>
         </div>
@@ -169,61 +170,61 @@ export default function AnalyticsPage() {
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Active Users
             </CardTitle>
-            <Activity className="h-5 w-5 text-blue-600" />
+            <Activity className="h-5 w-5 text-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {data.insights.activeUsersCount}
             </div>
-            <p className="text-xs text-gray-500">In selected period</p>
+            <p className="text-xs text-muted-foreground">In selected period</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Rooms
             </CardTitle>
-            <MessageSquare className="h-5 w-5 text-green-600" />
+            <MessageSquare className="h-5 w-5 text-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {data.roomActivity.reduce((sum, d) => sum + d.count, 0)}
             </div>
-            <p className="text-xs text-gray-500">Created in period</p>
+            <p className="text-xs text-muted-foreground">Created in period</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               New Users
             </CardTitle>
-            <Users className="h-5 w-5 text-purple-600" />
+            <Users className="h-5 w-5 text-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {data.userGrowth.reduce((sum, d) => sum + d.count, 0)}
             </div>
-            <p className="text-xs text-gray-500">Joined in period</p>
+            <p className="text-xs text-muted-foreground">Joined in period</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
               Reports
             </CardTitle>
-            <AlertTriangle className="h-5 w-5 text-red-600" />
+            <AlertTriangle className="h-5 w-5 text-destructive" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {data.reportsOverTime.reduce((sum, d) => sum + d.count, 0)}
             </div>
-            <p className="text-xs text-gray-500">Filed in period</p>
+            <p className="text-xs text-muted-foreground">Filed in period</p>
           </CardContent>
         </Card>
       </div>
@@ -438,13 +439,11 @@ export default function AnalyticsPage() {
                   <span className="text-sm font-medium">
                     {reporter.username}
                   </span>
-                  <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-                    {reporter.count} reports
-                  </span>
+                  <Badge variant="secondary">{reporter.count} reports</Badge>
                 </div>
               ))}
               {data.insights.topReporters.length === 0 && (
-                <p className="text-sm text-gray-500">No reports filed yet</p>
+                <p className="text-sm text-muted-foreground">No reports filed yet</p>
               )}
             </div>
           </CardContent>
@@ -468,18 +467,14 @@ export default function AnalyticsPage() {
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">{user.username}</span>
                     {user.banned && (
-                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-                        Banned
-                      </span>
+                      <Badge variant="destructive">Banned</Badge>
                     )}
                   </div>
-                  <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
-                    {user.count} reports
-                  </span>
+                  <Badge variant="destructive">{user.count} reports</Badge>
                 </div>
               ))}
               {data.insights.mostReported.length === 0 && (
-                <p className="text-sm text-gray-500">No users reported yet</p>
+                <p className="text-sm text-muted-foreground">No users reported yet</p>
               )}
             </div>
           </CardContent>

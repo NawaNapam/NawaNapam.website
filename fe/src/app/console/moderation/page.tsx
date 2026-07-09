@@ -146,7 +146,7 @@ export default function ModerationPage() {
     <div className="p-4 sm:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold sm:text-3xl">Moderation Logs</h1>
-        <p className="text-sm text-gray-600 sm:text-base">
+        <p className="text-sm text-muted-foreground sm:text-base">
           View all moderation actions and history
         </p>
       </div>
@@ -193,7 +193,7 @@ export default function ModerationPage() {
                         <div className="font-medium">
                           {getUserDisplay(log.user)}
                         </div>
-                        <div className="text-gray-500">{log.user.email}</div>
+                        <div className="text-muted-foreground">{log.user.email}</div>
                       </div>
                     </TableCell>
                     <TableCell>{getActionBadge(log.action)}</TableCell>
@@ -209,7 +209,7 @@ export default function ModerationPage() {
                     </TableCell>
                     <TableCell className="text-sm">
                       <div>{new Date(log.createdAt).toLocaleDateString()}</div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {new Date(log.createdAt).toLocaleTimeString()}
                       </div>
                     </TableCell>
@@ -236,7 +236,7 @@ export default function ModerationPage() {
                       <div className="mb-1 font-medium">
                         {getUserDisplay(log.user)}
                       </div>
-                      <div className="text-sm text-gray-500">
+                      <div className="text-sm text-muted-foreground">
                         {log.user.email}
                       </div>
                     </div>
@@ -245,14 +245,14 @@ export default function ModerationPage() {
 
                   <div className="mb-3 space-y-2 text-sm">
                     <div>
-                      <span className="text-gray-500">Reason: </span>
+                      <span className="text-muted-foreground">Reason: </span>
                       <span>{log.reason || "No reason provided"}</span>
                     </div>
                     <div>
-                      <span className="text-gray-500">By: </span>
+                      <span className="text-muted-foreground">By: </span>
                       <span>{getAdminDisplay(log.performedByAdmin)}</span>
                     </div>
-                    <div className="text-gray-500">
+                    <div className="text-muted-foreground">
                       {new Date(log.createdAt).toLocaleString()}
                     </div>
                   </div>
@@ -270,8 +270,8 @@ export default function ModerationPage() {
           </div>
 
           {logs.length === 0 && (
-            <div className="py-12 text-center text-gray-500">
-              <ShieldAlert className="mx-auto mb-3 h-12 w-12 text-gray-300" />
+            <div className="py-12 text-center text-muted-foreground">
+              <ShieldAlert className="mx-auto mb-3 h-12 w-12 text-muted-foreground" />
               <p>No moderation logs found</p>
             </div>
           )}
@@ -289,7 +289,7 @@ export default function ModerationPage() {
                 <span className="hidden sm:inline">Previous</span>
               </Button>
 
-              <span className="text-sm text-gray-600">
+              <span className="text-sm text-muted-foreground">
                 Page {page} of {totalPages}
               </span>
 

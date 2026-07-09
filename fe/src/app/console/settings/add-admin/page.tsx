@@ -88,7 +88,7 @@ export default function AddAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-8">
+    <div className="min-h-screen bg-background p-4 sm:p-8">
       <div className="mx-auto max-w-2xl">
         {/* Header */}
         <div className="mb-6 flex items-center gap-4">
@@ -99,7 +99,7 @@ export default function AddAdminPage() {
           </Link>
           <div>
             <h1 className="text-2xl font-bold sm:text-3xl">Add New Admin</h1>
-            <p className="text-sm text-gray-600 sm:text-base">
+            <p className="text-sm text-muted-foreground sm:text-base">
               Create a new administrator account
             </p>
           </div>
@@ -124,7 +124,7 @@ export default function AddAdminPage() {
               )}
 
               {success && (
-                <Alert className="border-green-500 bg-green-50 text-green-900">
+                <Alert className="border-success-border bg-success/10 text-success">
                   <AlertDescription>
                     Admin user created successfully! Redirecting...
                   </AlertDescription>
@@ -171,7 +171,7 @@ export default function AddAdminPage() {
                   disabled={loading}
                   className="w-full"
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Password must be at least 8 characters long
                 </p>
               </div>
@@ -190,7 +190,7 @@ export default function AddAdminPage() {
                     <SelectItem value="MODERATOR">
                       <div>
                         <div className="font-medium">Moderator</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           Basic moderation permissions
                         </div>
                       </div>
@@ -198,7 +198,7 @@ export default function AddAdminPage() {
                     <SelectItem value="ADMIN">
                       <div>
                         <div className="font-medium">Admin</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           Full admin access except user management
                         </div>
                       </div>
@@ -206,7 +206,7 @@ export default function AddAdminPage() {
                     <SelectItem value="SUPER_ADMIN">
                       <div>
                         <div className="font-medium">Super Admin</div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           Complete control including admin management
                         </div>
                       </div>
