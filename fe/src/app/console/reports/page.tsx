@@ -35,6 +35,7 @@ interface Report {
   message: string;
   status: "PENDING" | "REVIEWED" | "ACTION_TAKEN";
   createdAt: string;
+  responseLink: string | null;
   reporter: {
     id: string;
     email: string;
@@ -190,6 +191,7 @@ export default function ReportsPage() {
                   <TableHead>Reason</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
+                  <TableHead>Response</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -234,6 +236,20 @@ export default function ReportsPage() {
                     <TableCell>{getStatusBadge(report.status)}</TableCell>
                     <TableCell className="text-sm">
                       {new Date(report.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {report.responseLink ? (
+                        <a
+                          href={report.responseLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-primary underline underline-offset-2"
+                        >
+                          View response
+                        </a>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
@@ -318,6 +334,18 @@ export default function ReportsPage() {
                     <div className="text-muted-foreground">
                       {new Date(report.createdAt).toLocaleDateString()}
                     </div>
+                    {report.responseLink && (
+                      <div>
+                        <a
+                          href={report.responseLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline underline-offset-2"
+                        >
+                          View response
+                        </a>
+                      </div>
+                    )}
                   </div>
 
                   {report.status !== "ACTION_TAKEN" && (

@@ -65,7 +65,6 @@ export default function CallHistoryPage() {
     try {
       await navigator.clipboard.writeText(details);
       setCopiedId(call.id);
-      toast.success("Call details copied — paste them into the report form.");
       setTimeout(() => setCopiedId(null), 2000);
     } catch {
       toast.error("Could not copy details.");

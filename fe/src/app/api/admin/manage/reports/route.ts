@@ -29,7 +29,13 @@ export async function GET(request: NextRequest) {
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+          id: true,
+          reason: true,
+          message: true,
+          status: true,
+          createdAt: true,
+          responseLink: true,
           reporter: {
             select: {
               id: true,

@@ -189,6 +189,7 @@ model Report {
   status         ReportStatus @default(PENDING)
   createdAt      DateTime     @default(now())
   reviewedBy     String?
+  responseLink   String?
   reportedUser   User         @relation("ReportsAgainstUser", fields: [reportedUserId], references: [id])
   reporter       User         @relation("ReportsByUser", fields: [reporterId], references: [id])
   room           ChatRoom?    @relation(fields: [roomId], references: [id])
