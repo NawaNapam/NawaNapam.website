@@ -24,6 +24,15 @@ const config: CapacitorConfig = {
         twitter: false,
       },
     },
+    // Keep the native cold-start splash (android/.../res/drawable*/splash.png,
+    // shown via the Theme.SplashScreen in styles.xml) on screen past the
+    // Activity's first frame — otherwise it's replaced by a blank WebView
+    // while Next.js loads/hydrates. `HomeGate` calls SplashScreen.hide()
+    // once it knows whether to route to /login or /dashboard.
+    SplashScreen: {
+      launchAutoHide: false,
+      showSpinner: false,
+    },
   },
 };
 

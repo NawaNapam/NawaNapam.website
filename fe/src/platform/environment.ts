@@ -1,5 +1,3 @@
-import { ENV_FORCE_NATIVE, ENV_PLATFORM_OVERRIDE } from "./constants";
-
 export const isProduction = process.env.NODE_ENV === "production";
 export const isDevelopment = !isProduction;
 
@@ -18,8 +16,14 @@ export interface DevOverride {
 export function getDevOverride(): DevOverride | null {
   if (isProduction) return null;
 
-  const forceNative = process.env[ENV_FORCE_NATIVE] === "true";
-  const osOverride = process.env[ENV_PLATFORM_OVERRIDE];
+  // Next.js only inlines NEXT_PUBLIC_* env vars into the client bundle for
+  // *static* `process.env.X` access — a dynamic/computed lookup (reading
+  // through a variable holding the name) can't be statically analyzed, so it
+  // silently resolves to undefined in the browser. Must be spelled out
+  // literally here, even though the names are still centralized in
+  // constants.ts for anything reading them server-side or via bracket access.
+  const forceNative = process.env.NEXT_PUBLIC_FORCE_NATIVE === "true";
+  const osOverride = process.env.NEXT_PUBLIC_PLATFORM;
   const os = osOverride === "android" || osOverride === "ios" ? osOverride : undefined;
 
   if (!forceNative && !os) return null;

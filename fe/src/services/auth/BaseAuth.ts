@@ -1,5 +1,8 @@
 import { signIn, signOut, getSession } from "next-auth/react";
 import type { AuthProvider, AuthUser, CredentialsResult } from "./AuthProvider";
+import { useAuthStore } from "@/stores/authStore";
+import { storageService } from "@/services/storage";
+import { AUTH_STORAGE_KEY } from "@/platform/constants";
 
 /**
  * Credentials login, logout, and session lookup are identical on web and
@@ -18,6 +21,14 @@ export abstract class BaseAuth implements AuthProvider {
   }
 
   async logout(callbackUrl = "/"): Promise<void> {
+    // The auth store is persisted to native storage (survives app restarts)
+    // as a UI-convenience mirror of the session. It must be wiped explicitly
+    // and *awaited* before signOut's redirect navigates away — zustand's
+    // persist middleware writes through an async native bridge call
+    // (Preferences.set) that a same-tick navigation can otherwise cut off,
+    // leaving a stale "authenticated" flag for the next cold start to read.
+    useAuthStore.getState().clearUser();
+    await storageService.remove(AUTH_STORAGE_KEY);
     await signOut({ callbackUrl });
   }
 
