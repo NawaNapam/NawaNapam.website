@@ -12,7 +12,7 @@ const config: CapacitorConfig = {
   appName: "Nawa Napam",
   webDir: "www",
   server: {
-    url: "http://10.73.23.193:3000",
+    url: "https://www.nawanapam.com",
     cleartext: true,
   },
   plugins: {
