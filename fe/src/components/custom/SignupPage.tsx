@@ -7,9 +7,9 @@ import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/services/toast";
 import { User, Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
-import { signInWithGoogle } from "@/lib/nativeGoogleAuth";
+import { authService } from "@/services/auth";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -60,12 +60,8 @@ export default function SignupPage() {
       return;
     }
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-    if (result?.error) {
+    const result = await authService.loginWithCredentials(email, password);
+    if (!result.ok) {
       toast.success("Account created! Redirecting to login...");
       setTimeout(() => (window.location.href = "/login"), 100);
     } else {
@@ -76,7 +72,7 @@ export default function SignupPage() {
 
   const handleProvider = (provider: "google" | "instagram") => {
     if (provider === "google") {
-      signInWithGoogle("/dashboard");
+      authService.loginWithGoogle("/dashboard");
       return;
     }
     signIn(provider, { callbackUrl: "/dashboard" });

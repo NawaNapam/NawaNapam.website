@@ -7,9 +7,9 @@ import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/services/toast";
 import { Mail, Lock, Loader2, ArrowLeft } from "lucide-react";
-import { signInWithGoogle } from "@/lib/nativeGoogleAuth";
+import { authService } from "@/services/auth";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -34,13 +34,9 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
 
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    const result = await authService.loginWithCredentials(email, password);
 
-    if (result?.error) {
+    if (!result.ok) {
       toast.error("Invalid email or password");
       setIsLoading(false);
     } else {
@@ -51,7 +47,7 @@ export default function LoginPage() {
 
   const handleProvider = (provider: "google" | "instagram") => {
     if (provider === "google") {
-      signInWithGoogle("/dashboard");
+      authService.loginWithGoogle("/dashboard");
       return;
     }
     signIn(provider, { callbackUrl: "/dashboard" });
