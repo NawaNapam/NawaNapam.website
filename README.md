@@ -1,7 +1,15 @@
-# NawaNapam.website
+<div align="center">
 
-> **PROPRIETARY - INTERNAL USE ONLY**  
-> This codebase is proprietary and confidential. Access and usage are restricted to authorized employees of NawaNapam organization only. Unauthorized access, use, distribution, or reproduction is strictly prohibited.
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:111827,100:1f2937&height=110&section=header&text=NawaNapam&fontSize=38&fontColor=ffffff&animation=fadeIn&fontAlignY=55" width="100%" alt="NawaNapam" />
+
+<img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=16&duration=3000&pause=1200&color=10B981&center=true&vCenter=true&width=560&lines=Anonymous+Video+Chat+%E2%80%A2+Real-time+Matching;WebRTC+%2B+Socket.IO+%2B+Next.js;Privacy+First+%E2%80%A2+No+Profile+Required" alt="Typing SVG" />
+
+**PROPRIETARY - INTERNAL USE ONLY**
+This codebase is proprietary and confidential. Access and usage are restricted to authorized employees of NawaNapam organization only. Unauthorized access, use, distribution, or reproduction is strictly prohibited.
+
+[![Download APK](https://img.shields.io/badge/Download-Android%20APK-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/NawaNapam/NawaNapam.website/releases/latest/download/nawanapam.apk)
+
+</div>
 
 A modern, real-time anonymous video chat platform built with Next.js and Socket.IO. Connect with random strangers worldwide through instant video calls with end-to-end privacy.
 
@@ -219,6 +227,59 @@ npm start
 - Background sync
 - Push notifications (coming soon)
 
+## Android App
+
+The `fe/android` directory is a [Capacitor](https://capacitorjs.com/) native
+wrapper that points at the production site (`https://www.nawanapam.com`), so
+building the APK does **not** require a local Next.js build.
+
+### Getting the APK
+
+[![Download APK](https://img.shields.io/badge/Download-Android%20APK-3DDC84?logo=android&logoColor=white)](https://github.com/NawaNapam/NawaNapam.website/releases/latest/download/nawanapam.apk)
+
+Click the badge above (or [Releases](https://github.com/NawaNapam/NawaNapam.website/releases)) to grab the latest signed release APK. Every push to `main` also builds a debug APK, downloadable from that commit's [Actions run](https://github.com/NawaNapam/NawaNapam.website/actions/workflows/android-build.yml) under **Artifacts**.
+
+### Build workflow (CI)
+
+[`.github/workflows/android-build.yml`](.github/workflows/android-build.yml):
+
+- **Push/PR touching `fe/**`** → builds a **debug APK** and uploads it as a workflow artifact.
+- **Tag push matching `android-v*`** (e.g. `android-v1.0.0`) → builds a **signed release APK** and publishes it as a GitHub Release asset (`nawanapam.apk`), which is what the download badge links to.
+
+#### Android release signing
+
+Release builds are signed using an environment-driven `signingConfig` in [`fe/android/app/build.gradle`](fe/android/app/build.gradle) — it's a no-op unless all four are present, so local/CI debug builds are unaffected. To enable signed releases, add these repo secrets (Settings → Secrets and variables → Actions):
+
+| Secret                      | Value                                       |
+| --------------------------- | -------------------------------------------- |
+| `ANDROID_KEYSTORE_BASE64`   | `base64 -w0 release.keystore` output          |
+| `ANDROID_KEYSTORE_PASSWORD` | keystore password                             |
+| `ANDROID_KEY_ALIAS`         | key alias                                     |
+| `ANDROID_KEY_PASSWORD`      | key password                                  |
+
+Then push a tag to cut a release:
+
+```bash
+git tag android-v1.0.0
+git push origin android-v1.0.0
+```
+
+### Building & installing locally
+
+```bash
+cd fe
+npm install
+npx cap sync android
+
+cd android
+./gradlew assembleDebug          # or assembleRelease with the env vars above set
+
+# Install straight to a connected/USB-debugging device via ADB
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+Without `adb`, copy the APK to the phone (USB transfer, Drive, etc.), open it from a file manager, and allow **"Install unknown apps"** for that app when prompted — Android will then walk through the install.
+
 ## Customization
 
 ### Styling
@@ -353,5 +414,11 @@ For issues, questions, or suggestions (employees only):
 
 ---
 
-**© 2026 NawaNapam Organization - Proprietary & Confidential**  
+<div align="center">
+
+**© 2026 NawaNapam Organization - Proprietary & Confidential**
 **For Internal Use by Authorized Employees Only**
+
+<img src="https://capsule-render.vercel.app/api?type=rect&color=0:1f2937,100:111827&height=80&section=footer&animation=fadeIn" width="100%" alt="" />
+
+</div>

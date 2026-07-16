@@ -1,0 +1,64 @@
+name: CI
+
+# Sanity-checks that both apps still lint and build on every push, so a
+# broken build is caught long before it reaches the Android APK workflow
+# (.github/workflows/android-build.yml) or a deploy.
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    name: Frontend (lint + build)
+    runs-on: ubuntu-latest
+    env:
+      # Dummy values so the build's runtime env validation
+      # (fe/src/lib/env-validation.ts) passes without any real secrets.
+      DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+      NEXTAUTH_URL: "http://localhost:3000"
+      NEXTAUTH_SECRET: "ci-only-placeholder-secret-value-1234567890"
+      UPSTASH_REDIS_REST_URL: "https://ci-placeholder.upstash.io"
+      UPSTASH_REDIS_REST_TOKEN: "ci-placeholder-token"
+      NEXT_PUBLIC_SIGNALING_URL: "http://localhost:8080"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: fe/package-lock.json
+
+      - name: Install dependencies
+        working-directory: fe
+        run: npm ci
+
+      - name: Lint
+        working-directory: fe
+        run: npm run lint
+
+      - name: Build
+        working-directory: fe
+        run: npm run build
+
+  backend:
+    name: Backend (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: be/package-lock.json
+
+      - name: Install dependencies
+        working-directory: be
+        run: npm ci
+
+      - name: Build
+        working-directory: be
+        run: npm run build

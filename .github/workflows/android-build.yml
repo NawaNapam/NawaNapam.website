@@ -1,0 +1,137 @@
+name: Android Build
+
+# Builds the Capacitor Android app in fe/android.
+#
+# - Every push/PR touching fe/** builds a debug APK and uploads it as a
+#   workflow artifact (Actions tab > this run > Artifacts).
+# - Pushing a tag like `android-v1.0.0` builds a release APK. If the signing
+#   secrets below are configured it is signed and published as an attachment
+#   on a GitHub Release; otherwise the job fails with a clear message.
+#
+# Required secrets for signed releases (Settings > Secrets and variables > Actions):
+#   ANDROID_KEYSTORE_BASE64   - `base64 -w0 release.keystore`
+#   ANDROID_KEYSTORE_PASSWORD
+#   ANDROID_KEY_ALIAS
+#   ANDROID_KEY_PASSWORD
+
+on:
+  push:
+    branches: [main]
+    tags: ["android-v*"]
+    paths:
+      - "fe/**"
+      - ".github/workflows/android-build.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "fe/**"
+  workflow_dispatch:
+
+env:
+  # prisma generate (npm postinstall) only needs a syntactically valid URL,
+  # it never connects to a database.
+  DATABASE_URL: "postgresql://ci:ci@localhost:5432/ci"
+
+jobs:
+  debug-apk:
+    name: Build debug APK
+    runs-on: ubuntu-latest
+    if: "!startsWith(github.ref, 'refs/tags/android-v')"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: fe/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: fe
+        run: npm ci
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Sync Capacitor Android project
+        working-directory: fe
+        run: npx cap sync android
+
+      - name: Build debug APK
+        working-directory: fe/android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: nawanapam-debug-apk
+          path: fe/android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+  release-apk:
+    name: Build & publish signed release APK
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/android-v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: fe/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: fe
+        run: npm ci
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Sync Capacitor Android project
+        working-directory: fe
+        run: npx cap sync android
+
+      - name: Decode release keystore
+        id: keystore
+        run: |
+          if [ -z "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" ]; then
+            echo "::error::ANDROID_KEYSTORE_BASE64 secret is not set. Configure the signing secrets described in this workflow's header before pushing an android-v* tag." >&2
+            exit 1
+          fi
+          keystore_path="$RUNNER_TEMP/release.keystore"
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$keystore_path"
+          echo "path=$keystore_path" >> "$GITHUB_OUTPUT"
+
+      - name: Build release APK
+        working-directory: fe/android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ steps.keystore.outputs.path }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Rename APK for release
+        run: cp fe/android/app/build/outputs/apk/release/app-release.apk nawanapam.apk
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: nawanapam.apk
+          name: Android ${{ github.ref_name }}
+          generate_release_notes: true
