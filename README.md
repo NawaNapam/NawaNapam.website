@@ -467,11 +467,3 @@ Built by the NawaNapam team · [nawanapam.com](https://www.nawanapam.com)
 <sub>© 2026 NawaNapam. All rights reserved.</sub>
 
 </div>
-
-<div align="center">
-<sub>In more detail</sub>
-<br />
-
-[![View the full presentation on Gamma](https://img.shields.io/badge/Gamma-View%20full%20presentation-6E56CF?style=for-the-badge&logo=googleslides&logoColor=white)](https://gamma.app/embed/u2s18vwgj5gkdwm)
-
-</div>
